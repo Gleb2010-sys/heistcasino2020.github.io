@@ -221,21 +221,23 @@ function withdraw() {
     });
 }
 
-const API_URL = 'http://localhost:5000'; 
+const urlParams = new URLSearchParams(window.location.search);
+const token = urlParams.get('token');
 
-async function loadUserBalance() {
+async function loadRealBalance() {
+    if (!token) return;
+    
     try {
-        const response = await fetch(`${API_URL}/api/user/${userData.id}/balance`);
+        const response = await fetch(`http://localhost:5001/api/auth/${token}`);
         const data = await response.json();
         
         if (data.status === 'success') {
+            userData.id = data.user_id;
+            userData.username = data.username;
             userData.balance = data.balance;
             updateUserInterface();
-        } else {
-            console.error('API Error:', data.error);
         }
     } catch (error) {
-        console.error('Balance load error:', error);
+        console.error('Auth error:', error);
     }
 }
-
