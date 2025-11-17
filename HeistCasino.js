@@ -112,11 +112,9 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initApp() {
-    // Проверяем, запущено ли в Telegram
     if (window.Telegram && window.Telegram.WebApp) {
         initTelegramApp();
     } else {
-        // Запуск в браузере - демо-режим
         initBrowserDemo();
     }
 }
@@ -138,7 +136,6 @@ function initTelegramApp() {
 function initBrowserDemo() {
     console.log('🚀 Запуск в браузере - демо-режим');
     
-    // Создаем заглушку для tg функций
     tg = {
         showPopup: function(options, callback) {
             const buttonId = confirm(options.message + "\n\nНажмите OK для продолжения");
@@ -223,3 +220,22 @@ function withdraw() {
         ]
     });
 }
+
+const API_URL = 'http://localhost:5000'; 
+
+async function loadUserBalance() {
+    try {
+        const response = await fetch(`${API_URL}/api/user/${userData.id}/balance`);
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            userData.balance = data.balance;
+            updateUserInterface();
+        } else {
+            console.error('API Error:', data.error);
+        }
+    } catch (error) {
+        console.error('Balance load error:', error);
+    }
+}
+
