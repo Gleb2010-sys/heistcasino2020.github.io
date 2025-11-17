@@ -92,15 +92,17 @@ function deposit() {
     });
 }
 
-function withdraw() {
-    tg.showPopup({
-        title: '💎 Вывод средств',
-        message: 'Для вывода средств необходимо:\n\n• Минимум 1$\n• Сделать хотя бы одну ставку\n• Иметь историю пополнений',
-        buttons: [
-            {id: 'continue', type: 'default', text: 'Понятно'},
-            {type: 'cancel'}
-        ]
-    });
+function initTelegramApp() {
+    tg = window.Telegram.WebApp;
+    tg.expand();
+    
+    const tgUser = tg.initDataUnsafe.user;
+    
+    if (tgUser) {
+        initUser(tgUser);
+    } else {
+        initDemoUser();
+    }
+    
+    tg.showAlert('🎉 Добро пожаловать в HeistCasino!');
 }
-
-tg.showAlert('🎉 Добро пожаловать в HeistCasino!');
