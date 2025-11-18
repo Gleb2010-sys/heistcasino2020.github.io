@@ -153,8 +153,6 @@
                     <!-- Аватарка будет загружена через JavaScript -->
                 </div>
                 <div class="username" id="userName">Загрузка...</div>
-                <div class="telegram-username" id="telegramUsername">@username</div>
-                <div class="user-id" id="userId">ID: 000000000</div>
             </div>
             
             <div class="balance-section">
@@ -185,7 +183,7 @@
                 if (user) {
                     const avatarElement = document.getElementById('userAvatar');
                     
-                    // Загружаем аватарку пользователя
+                    // ВОТ ЭТОТ КОД ЗАГРУЖАЕТ АВАТАРКУ ПОЛЬЗОВАТЕЛЯ ИЗ ТЕЛЕГРАММ
                     if (user.photo_url) {
                         avatarElement.innerHTML = `<img src="${user.photo_url}" alt="Avatar" class="avatar-img">`;
                     } else {
@@ -200,16 +198,6 @@
                         displayName += ' ' + user.last_name;
                     }
                     document.getElementById('userName').textContent = displayName;
-                    
-                    // Устанавливаем username Telegram
-                    if (user.username) {
-                        document.getElementById('telegramUsername').textContent = '@' + user.username;
-                    } else {
-                        document.getElementById('telegramUsername').style.display = 'none';
-                    }
-                    
-                    // Устанавливаем ID пользователя
-                    document.getElementById('userId').textContent = 'ID: ' + user.id;
                 }
             } catch (error) {
                 console.error('Ошибка инициализации Telegram Web App:', error);
