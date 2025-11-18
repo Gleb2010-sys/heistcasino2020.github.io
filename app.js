@@ -56,13 +56,26 @@ function updateUserProfile(user) {
             avatarElement.style.backgroundImage = `url('${user.photo_url}')`;
             avatarElement.textContent = '';
         } else {
-            const firstLetter = getFirstLetter(user);
+            let firstLetter = 'U';
+            if (user.first_name) {
+                firstLetter = user.first_name.charAt(0).toUpperCase();
+            } else if (user.username) {
+                firstLetter = user.username.charAt(0).toUpperCase();
+            }
             avatarElement.textContent = firstLetter;
             avatarElement.style.backgroundImage = 'none';
         }
         
         const userNameElement = document.getElementById('userName');
-        const displayName = getDisplayName(user);
+        let displayName = 'Пользователь';
+        if (user.username) {
+            displayName = '@' + user.username;
+        } else if (user.first_name) {
+            displayName = user.first_name;
+            if (user.last_name) {
+                displayName += ' ' + user.last_name;
+            }
+        }
         userNameElement.textContent = displayName;
         
         const userIdElement = document.getElementById('userId');
@@ -74,30 +87,6 @@ function updateUserProfile(user) {
         
     } catch (error) {
         showError('Ошибка обновления профиля');
-    }
-}
-
-function getFirstLetter(user) {
-    if (user.first_name) {
-        return user.first_name.charAt(0).toUpperCase();
-    } else if (user.username) {
-        return user.username.charAt(0).toUpperCase();
-    } else {
-        return 'U';
-    }
-}
-
-function getDisplayName(user) {
-    if (user.username) {
-        return '@' + user.username;
-    } else if (user.first_name) {
-        let fullName = user.first_name;
-        if (user.last_name) {
-            fullName += ' ' + user.last_name;
-        }
-        return fullName;
-    } else {
-        return 'Пользователь';
     }
 }
 
