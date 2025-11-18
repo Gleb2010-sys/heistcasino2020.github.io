@@ -1,83 +1,70 @@
-// Конфигурация
 const CONFIG = {
-    BOT_USERNAME: 'HeistCasinoBot' // ЗАМЕНИ НА РЕАЛЬНЫЙ USERNAME ТВОЕГО БОТА
+    BOT_USERNAME: 'HeistCasinoBot'
 };
 
-// Глобальные переменные
 let tg = null;
 let currentUser = null;
 
-// Инициализация приложения
 function initTelegramApp() {
     try {
         tg = window.Telegram.WebApp;
         
-        console.log('=== TELEGRAM WEB APP DATA ===');
-        console.log('WebApp:', tg);
-        console.log('Init Data:', tg.initData);
-        console.log('User Data:', tg.initDataUnsafe);
-        console.log('User Object:', tg.initDataUnsafe.user);
-        
-        // Инициализируем Telegram Web App
         tg.expand();
         tg.enableClosingConfirmation();
         tg.setHeaderColor('#0f0f0f');
         tg.setBackgroundColor('#0f0f0f');
         
-        // Получаем данные пользователя
         currentUser = tg.initDataUnsafe.user;
         
         if (currentUser) {
-            console.log('✅ User data loaded successfully:', currentUser);
             updateUserProfile(currentUser);
         } else {
-            console.error('❌ No user data found in Telegram WebApp');
-            showError('Данные пользователя не найдены');
+            parseUserFromInitData(tg.initData);
         }
         
     } catch (error) {
-        console.error('❌ Error initializing Telegram app:', error);
         showError('Ошибка загрузки приложения');
     }
 }
 
-// Обновление профиля пользователя
+function parseUserFromInitData(initData) {
+    try {
+        if (!initData) {
+            showError('Нет данных от Telegram');
+            return;
+        }
+        
+        const params = new URLSearchParams(initData);
+        const userParam = params.get('user');
+        
+        if (userParam) {
+            const userData = JSON.parse(decodeURIComponent(userParam));
+            updateUserProfile(userData);
+        } else {
+            showError('Данные пользователя не найдены');
+        }
+        
+    } catch (error) {
+        showError('Ошибка парсинга данных');
+    }
+}
+
 function updateUserProfile(user) {
     try {
-        console.log('🔄 Updating user profile with:', user);
-        
-        // Устанавливаем аватарку
         const avatarElement = document.getElementById('userAvatar');
         if (user.photo_url) {
-            // Используем реальную аватарку из Telegram
             avatarElement.style.backgroundImage = `url('${user.photo_url}')`;
-            avatarElement.textContent = ''; // Убираем букву
-            console.log('✅ Avatar loaded from photo_url');
-        } else if (user.first_name) {
-            // Если нет аватарки, показываем первую букву имени
-            avatarElement.textContent = user.first_name.charAt(0).toUpperCase();
-            avatarElement.style.backgroundImage = 'none';
-            console.log('✅ Using letter avatar');
+            avatarElement.textContent = '';
         } else {
-            avatarElement.textContent = 'U';
+            const firstLetter = getFirstLetter(user);
+            avatarElement.textContent = firstLetter;
             avatarElement.style.backgroundImage = 'none';
         }
         
-        // Устанавливаем имя пользователя
         const userNameElement = document.getElementById('userName');
-        if (user.username) {
-            userNameElement.textContent = '@' + user.username;
-        } else if (user.first_name) {
-            let fullName = user.first_name;
-            if (user.last_name) {
-                fullName += ' ' + user.last_name;
-            }
-            userNameElement.textContent = fullName;
-        } else {
-            userNameElement.textContent = 'Пользователь';
-        }
+        const displayName = getDisplayName(user);
+        userNameElement.textContent = displayName;
         
-        // Устанавливаем ID
         const userIdElement = document.getElementById('userId');
         if (user.id) {
             userIdElement.textContent = 'ID: ' + user.id;
@@ -85,68 +72,64 @@ function updateUserProfile(user) {
             userIdElement.textContent = 'ID: неизвестен';
         }
         
-        console.log('✅ Profile updated successfully');
-        
     } catch (error) {
-        console.error('❌ Error updating user profile:', error);
         showError('Ошибка обновления профиля');
     }
 }
 
-// Открытие бота для пополнения
+function getFirstLetter(user) {
+    if (user.first_name) {
+        return user.first_name.charAt(0).toUpperCase();
+    } else if (user.username) {
+        return user.username.charAt(0).toUpperCase();
+    } else {
+        return 'U';
+    }
+}
+
+function getDisplayName(user) {
+    if (user.username) {
+        return '@' + user.username;
+    } else if (user.first_name) {
+        let fullName = user.first_name;
+        if (user.last_name) {
+            fullName += ' ' + user.last_name;
+        }
+        return fullName;
+    } else {
+        return 'Пользователь';
+    }
+}
+
 function openBotForDeposit() {
     if (!CONFIG.BOT_USERNAME || CONFIG.BOT_USERNAME.includes('HeistCasinoBot')) {
-        showError('Username бота не настроен. Замени HeistCasinoBot в app.js');
+        showError('Username бота не настроен');
         return;
     }
     
     const botUrl = `https://t.me/${CONFIG.BOT_USERNAME}?start=deposit`;
-    console.log('🔗 Opening bot for deposit:', botUrl);
-    
-    // Открываем бота в новом окне
     window.open(botUrl, '_blank');
 }
 
-// Открытие бота для вывода
 function openBotForWithdraw() {
     if (!CONFIG.BOT_USERNAME || CONFIG.BOT_USERNAME.includes('HeistCasinoBot')) {
-        showError('Username бота не настроен. Замени HeistCasinoBot в app.js');
+        showError('Username бота не настроен');
         return;
     }
     
     const botUrl = `https://t.me/${CONFIG.BOT_USERNAME}?start=withdraw`;
-    console.log('🔗 Opening bot for withdraw:', botUrl);
-    
-    // Открываем бота в новом окне
     window.open(botUrl, '_blank');
 }
 
-// Показать ошибку
 function showError(message) {
-    // Можно добавить уведомление или изменить интерфейс
-    console.error('💥 Error:', message);
-    
     const userNameElement = document.getElementById('userName');
-    userNameElement.textContent = 'Ошибка загрузки';
+    userNameElement.textContent = message;
     userNameElement.style.color = '#EF4444';
 }
 
-// Обработчики событий
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 DOM loaded, initializing Telegram app...');
 });
 
-// Инициализация при загрузке
 window.addEventListener('load', function() {
-    console.log('🎯 Window loaded, starting initialization...');
     initTelegramApp();
 });
-
-// Функция для отладки (можно вызвать из консоли)
-function debugInfo() {
-    console.log('=== DEBUG INFO ===');
-    console.log('Current User:', currentUser);
-    console.log('Telegram WebApp:', tg);
-    console.log('Bot Username:', CONFIG.BOT_USERNAME);
-    console.log('==================');
-}
