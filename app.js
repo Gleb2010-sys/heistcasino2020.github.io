@@ -9,8 +9,15 @@ function initTelegramApp() {
         
         const user = tg.initDataUnsafe.user;
         if (user) {
+            // Показываем первую букву имени для аватарки
             document.getElementById('userAvatar').textContent = user.first_name ? user.first_name.charAt(0).toUpperCase() : 'U';
-            document.getElementById('userName').textContent = user.username ? '@' + user.username : user.first_name || 'Пользователь';
+            
+            // Показываем полное имя из аккаунта Telegram
+            let displayName = user.first_name || 'Пользователь';
+            if (user.last_name) {
+                displayName += ' ' + user.last_name;
+            }
+            document.getElementById('userName').textContent = displayName;
         }
     } catch (error) {
         document.getElementById('userName').textContent = 'Ошибка загрузки';
