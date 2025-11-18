@@ -307,4 +307,212 @@ function debugUserData() {
     console.log('Current user:', currentUser);
     console.log('Telegram WebApp:', tg);
     showNotification('Данные выведены в консоль', 'info');
+
 }
+
+// Конфигурация
+const CONFIG = {
+    API_URL: 'https://your-domain.timeweb.cloud/api', // Пока оставь так
+    BOT_USERNAME: 'HeistCasinoBot' // ЗАМЕНИ НА РЕАЛЬНЫЙ USERNAME ТВОЕГО БОТА
+};
+
+// Глобальные переменные
+let tg = null;
+let currentUser = null;
+let currentPaymentId = null;
+
+// Инициализация приложения
+function initTelegramApp() {
+    try {
+        tg = window.Telegram.WebApp;
+        
+        console.log('Telegram WebApp initialized:', tg);
+        console.log('User data:', tg.initDataUnsafe.user);
+        
+        // Инициализируем Telegram Web App
+        tg.expand();
+        tg.enableClosingConfirmation();
+        tg.setHeaderColor('#0f0f0f');
+        tg.setBackgroundColor('#0f0f0f');
+        
+        // Получаем данные пользователя
+        currentUser = tg.initDataUnsafe.user;
+        
+        if (currentUser) {
+            console.log('User found:', currentUser);
+            updateUserInfo(currentUser);
+        } else {
+            console.error('No user data found');
+            showTestData();
+        }
+        
+    } catch (error) {
+        console.error('Error initializing Telegram app:', error);
+        showTestData();
+    }
+}
+
+// Обновление информации о пользователе
+function updateUserInfo(user) {
+    try {
+        console.log('Updating user info:', user);
+        
+        // Устанавливаем аватар
+        const avatarElement = document.getElementById('userAvatar');
+        if (user.first_name) {
+            avatarElement.textContent = user.first_name.charAt(0).toUpperCase();
+        } else if (user.username) {
+            avatarElement.textContent = user.username.charAt(0).toUpperCase();
+        } else {
+            avatarElement.textContent = 'U';
+        }
+        
+        // Устанавливаем имя пользователя
+        const userNameElement = document.getElementById('userName');
+        if (user.username) {
+            userNameElement.textContent = '@' + user.username;
+        } else if (user.first_name) {
+            userNameElement.textContent = user.first_name;
+            if (user.last_name) {
+                userNameElement.textContent += ' ' + user.last_name;
+            }
+        } else {
+            userNameElement.textContent = 'Пользователь';
+        }
+        
+        // Устанавливаем ID
+        const userIdElement = document.getElementById('userId');
+        if (user.id) {
+            userIdElement.textContent = 'ID: ' + user.id;
+        } else {
+            userIdElement.textContent = 'ID: loading...';
+        }
+        
+    } catch (error) {
+        console.error('Error updating user info:', error);
+        showTestData();
+    }
+}
+
+// Показать тестовые данные для отладки
+function showTestData() {
+    console.log('Showing test data');
+    
+    const avatarElement = document.getElementById('userAvatar');
+    const userNameElement = document.getElementById('userName');
+    const userIdElement = document.getElementById('userId');
+    
+    avatarElement.textContent = 'T';
+    userNameElement.textContent = 'Test User';
+    userIdElement.textContent = 'ID: 123456789';
+    
+    showNotification('Используются тестовые данные', 'warning');
+}
+
+// Обновление баланса
+function updateBalance(balance) {
+    const balanceElement = document.getElementById('userBalance');
+    balanceElement.textContent = balance.toFixed(2) + '$';
+}
+
+// Открытие модального окна пополнения
+function openDepositModal() {
+    const modal = document.getElementById('depositModal');
+    modal.style.display = 'block';
+    document.getElementById('depositAmount').value = '';
+}
+
+// Закрытие модального окна
+function closeDepositModal() {
+    const modal = document.getElementById('depositModal');
+    modal.style.display = 'none';
+}
+
+// Создание платежа
+async function createPayment(method) {
+    try {
+        const amountInput = document.getElementById('depositAmount');
+        const amount = parseFloat(amountInput.value);
+        
+        if (!amount || amount < 1 || amount > 1000) {
+            showNotification('Введите сумму от 1$ до 1000$', 'error');
+            return;
+        }
+        
+        if (!currentUser || !currentUser.id) {
+            showNotification('Ошибка: данные пользователя не загружены', 'error');
+            return;
+        }
+        
+        showNotification('Создание платежа...', 'info');
+        
+        // Демо-режим - сразу открываем бота
+        closeDepositModal();
+        openBotDialog(amount, method);
+        
+    } catch (error) {
+        console.error('Error creating payment:', error);
+        showNotification('Ошибка создания платежа', 'error');
+    }
+}
+
+// Открытие диалога с ботом
+function openBotDialog(amount, method) {
+    const botUrl = `https://t.me/${CONFIG.BOT_USERNAME}?start=pay_${amount}_${method}`;
+    
+    showNotification(`Открываю бота для оплаты ${amount}$...`, 'info', 3000);
+    
+    // Открываем бота в новом окне
+    setTimeout(() => {
+        window.open(botUrl, '_blank');
+    }, 1000);
+}
+
+// Функция вывода средств
+function withdraw() {
+    const botUrl = `https://t.me/${CONFIG.BOT_USERNAME}?start=withdraw`;
+    
+    showNotification('Открываю бота для вывода...', 'info', 3000);
+    
+    setTimeout(() => {
+        window.open(botUrl, '_blank');
+    }, 1000);
+}
+
+// Показать уведомление
+function showNotification(message, type = 'info', duration = 3000) {
+    const notification = document.getElementById('notification');
+    notification.textContent = message;
+    
+    const colors = {
+        success: '#10B981',
+        error: '#EF4444',
+        info: '#8B5CF6',
+        warning: '#F59E0B'
+    };
+    
+    notification.style.background = colors[type] || colors.info;
+    notification.style.display = 'block';
+    
+    setTimeout(() => {
+        notification.style.display = 'none';
+    }, duration);
+}
+
+// Обработчики событий
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('depositModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeDepositModal();
+        }
+    });
+    
+    document.getElementById('depositAmount').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            createPayment('crypto');
+        }
+    });
+});
+
+// Инициализация при загрузке
+window.addEventListener('load', initTelegramApp);
