@@ -9,10 +9,8 @@ function initTelegramApp() {
         
         const user = tg.initDataUnsafe.user;
         if (user) {
-            // Показываем первую букву имени для аватарки
             document.getElementById('userAvatar').textContent = user.first_name ? user.first_name.charAt(0).toUpperCase() : 'U';
             
-            // Показываем полное имя из аккаунта Telegram
             let displayName = user.first_name || 'Пользователь';
             if (user.last_name) {
                 displayName += ' ' + user.last_name;
