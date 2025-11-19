@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>HeistCasino - Профиль</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -10,9 +10,9 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* Отключение выделения текста и контекстного меню */
         body {
             font-family: 'Arial', sans-serif;
             background: #0f0f0f;
@@ -26,6 +26,7 @@
             -webkit-touch-callout: none;
             overflow: hidden;
             padding-bottom: 80px;
+            touch-action: manipulation;
         }
         body, body * {
             -webkit-user-select: none !important;
@@ -168,6 +169,9 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+            user-select: none;
         }
 
         .action-btn:hover {
@@ -177,9 +181,9 @@
 
         .action-btn:active {
             transform: translateY(0);
+            background: #6D28D9;
         }
 
-        /* Стили для инвентаря */
         .inventory-section {
             flex: 1;
             display: flex;
@@ -207,9 +211,9 @@
             align-items: center;
             justify-content: center;
             color: #94A3B8;
+            -webkit-overflow-scrolling: touch;
         }
 
-        /* Стилизация скроллбара для инвентаря */
         .inventory-container::-webkit-scrollbar {
             width: 6px;
         }
@@ -228,7 +232,6 @@
             background: #7C3AED;
         }
 
-        /* Нижнее меню */
         .bottom-menu {
             position: fixed;
             bottom: 0;
@@ -255,6 +258,9 @@
             transition: all 0.3s ease;
             border-radius: 10px;
             min-height: 50px;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+            user-select: none;
         }
 
         .menu-item.active {
@@ -305,6 +311,7 @@
 
         .menu-item:active {
             transform: translateY(0);
+            background: rgba(139, 92, 246, 0.15);
         }
 
         .protected-image {
@@ -315,6 +322,79 @@
             -moz-user-select: none;
             -ms-user-select: none;
             -webkit-touch-callout: none;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                height: calc(100vh - 100px);
+            }
+            
+            .profile-card {
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+            
+            .action-buttons {
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+            
+            .action-btn {
+                padding: 14px;
+                font-size: 15px;
+            }
+            
+            .inventory-section {
+                padding: 15px;
+            }
+            
+            .bottom-menu {
+                padding: 8px 15px;
+            }
+            
+            .menu-item {
+                padding: 6px 4px;
+                min-height: 45px;
+            }
+            
+            .menu-icon {
+                width: 22px;
+                height: 22px;
+            }
+            
+            .menu-text {
+                font-size: 11px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            body {
+                padding: 15px;
+                padding-bottom: 70px;
+            }
+            
+            .profile-card {
+                padding: 15px;
+            }
+            
+            .avatar {
+                width: 80px;
+                height: 80px;
+                font-size: 28px;
+            }
+            
+            .username {
+                font-size: 18px;
+            }
+            
+            .balance-amount {
+                font-size: 28px;
+            }
+            
+            .action-btn {
+                padding: 12px;
+                font-size: 14px;
+            }
         }
     </style>
 </head>
@@ -356,12 +436,6 @@
                 <img src="https://s3.iimg.su/s/19/gju6MLbx7lZF5quIOdqoHS6j8p6N8Bjz5vTdqO95.png" alt="Меню" class="protected-image" />
             </div>
             <div class="menu-text">Меню</div>
-        </div>
-        <div class="menu-item" onclick="navigateTo('tasks')">
-            <div class="menu-icon">
-                <img src="https://via.placeholder.com/24/8B5CF6/FFFFFF?text=Q" alt="Майнер" class="protected-image" />
-            </div>
-            <div class="menu-text">Майнер</div>
         </div>
         <div class="menu-item" onclick="navigateTo('roulette')">
             <div class="menu-icon">
@@ -466,6 +540,8 @@
             }
         }
 
+        document.addEventListener('touchstart', function() {}, {passive: true});
+        
         document.addEventListener('contextmenu', event => {
             if (event.target.tagName === 'IMG') {
                 event.preventDefault();
@@ -496,6 +572,15 @@
                 e.preventDefault();
             }
         }, { passive: false });
+
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
 
         window.onload = initTelegramApp;
     </script>
