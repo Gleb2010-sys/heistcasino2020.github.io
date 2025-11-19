@@ -145,20 +145,6 @@
             user-select: none;
         }
 
-        .usdt-icon {
-            width: 24px;
-            height: 24px;
-            background: #26A17B;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-            color: white;
-            user-select: none;
-        }
-
         .action-btn {
             background: #8B5CF6;
             border: none;
@@ -184,6 +170,7 @@
             background: #6D28D9;
         }
 
+        /* Стили для инвентаря */
         .inventory-section {
             flex: 1;
             display: flex;
@@ -214,6 +201,7 @@
             -webkit-overflow-scrolling: touch;
         }
 
+        /* Стилизация скроллбара для инвентаря */
         .inventory-container::-webkit-scrollbar {
             width: 6px;
         }
@@ -232,6 +220,7 @@
             background: #7C3AED;
         }
 
+        /* Нижнее меню */
         .bottom-menu {
             position: fixed;
             bottom: 0;
@@ -324,6 +313,173 @@
             -webkit-touch-callout: none;
         }
 
+        /* Модальное окно пополнения */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: #1a1a1a;
+            border: 2px solid #8B5CF6;
+            border-radius: 20px;
+            padding: 25px;
+            width: 100%;
+            max-width: 400px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: #94A3B8;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .payment-methods {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .payment-method {
+            background: rgba(139, 92, 246, 0.1);
+            border: 2px solid #8B5CF6;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .payment-method.active {
+            background: rgba(139, 92, 246, 0.3);
+            border-color: #7C3AED;
+        }
+
+        .payment-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .payment-name {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .amount-input-section {
+            margin-bottom: 20px;
+        }
+
+        .amount-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #94A3B8;
+            font-size: 14px;
+        }
+
+        .amount-input {
+            width: 100%;
+            background: rgba(139, 92, 246, 0.1);
+            border: 2px solid #8B5CF6;
+            border-radius: 12px;
+            padding: 15px;
+            color: white;
+            font-size: 16px;
+            outline: none;
+            text-align: center;
+        }
+
+        .amount-input:focus {
+            border-color: #7C3AED;
+        }
+
+        .conversion-info {
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .conversion-rate {
+            font-size: 14px;
+            color: #94A3B8;
+            margin-bottom: 5px;
+        }
+
+        .conversion-result {
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .pay-btn {
+            width: 100%;
+            background: #8B5CF6;
+            border: none;
+            border-radius: 12px;
+            padding: 15px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pay-btn:active {
+            background: #6D28D9;
+            transform: translateY(0);
+        }
+
+        .pay-btn:disabled {
+            background: #94A3B8;
+            cursor: not-allowed;
+        }
+
+        .bonus-info {
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #94A3B8;
+        }
+
+        .bonus-highlight {
+            color: #8B5CF6;
+            font-weight: bold;
+        }
+
+        /* Оптимизация для мобильных устройств */
         @media (max-width: 480px) {
             .container {
                 height: calc(100vh - 100px);
@@ -365,8 +521,13 @@
             .menu-text {
                 font-size: 11px;
             }
+            
+            .modal-content {
+                padding: 20px;
+            }
         }
 
+        /* Для очень маленьких экранов */
         @media (max-width: 360px) {
             body {
                 padding: 15px;
@@ -416,7 +577,7 @@
         </div>
         
         <div class="action-buttons">
-            <button class="action-btn" onclick="openBotForDeposit()">Пополнить</button>
+            <button class="action-btn" onclick="showDepositModal()">Пополнить</button>
             <button class="action-btn" onclick="openBotForWithdraw()">Вывести</button>
         </div>
         
@@ -426,6 +587,45 @@
                 <div style="text-align: center; color: #94A3B8;">
                     Инвентарь пуст
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно пополнения -->
+    <div class="modal-overlay" id="depositModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">⭐️ Пополнение Stars</div>
+                <button class="close-btn" onclick="closeDepositModal()">×</button>
+            </div>
+            
+            <div class="bonus-info">
+                <span class="bonus-highlight">TON +10%</span> • <span class="bonus-highlight">SEND +5%</span>
+            </div>
+            
+            <div class="payment-methods">
+                <div class="payment-method active">
+                    <div class="payment-icon">⭐️</div>
+                    <div class="payment-name">Telegram Stars</div>
+                </div>
+            </div>
+            
+            <div class="amount-input-section">
+                <label class="amount-label">Количество Stars для покупки:</label>
+                <input type="number" class="amount-input" id="starsInput" placeholder="Введите количество Stars" min="1" step="1" oninput="updateConversion()">
+            </div>
+            
+            <div class="conversion-info">
+                <div class="conversion-rate" id="conversionRate">Введите количество Stars</div>
+                <div class="conversion-result" id="conversionResult"></div>
+            </div>
+            
+            <button class="pay-btn" id="payButton" onclick="processStarsPayment()" disabled>
+                💳 Подтвердить и заплатить
+            </button>
+            
+            <div style="text-align: center; margin-top: 15px; font-size: 12px; color: #94A3B8;">
+                Совершая покупку, Вы принимаете условия Telegram.
             </div>
         </div>
     </div>
@@ -459,8 +659,11 @@
 
     <script>
         const CONFIG = {
-            BOT_USERNAME: 'FakeHeistCasino_bot'
+            BOT_USERNAME: 'FakeHeistCasino_bot',
+            STARS_TO_GAME: 8 // 1 Stars = 8 вашей крипты
         };
+
+        let currentStarsAmount = 0;
 
         function initTelegramApp() {
             try {
@@ -490,58 +693,118 @@
             }
         }
 
+        function showDepositModal() {
+            document.getElementById('depositModal').style.display = 'flex';
+            updateConversion();
+        }
+
+        function closeDepositModal() {
+            document.getElementById('depositModal').style.display = 'none';
+            resetForm();
+        }
+
+        function updateConversion() {
+            const starsInput = document.getElementById('starsInput');
+            const stars = parseInt(starsInput.value) || 0;
+            currentStarsAmount = stars;
+            
+            const payButton = document.getElementById('payButton');
+            const conversionRate = document.getElementById('conversionRate');
+            const conversionResult = document.getElementById('conversionResult');
+            
+            // Активируем кнопку если сумма валидна
+            if (stars > 0) {
+                payButton.disabled = false;
+                payButton.innerHTML = `💳 Подтвердить и заплатить ★ ${stars}`;
+            } else {
+                payButton.disabled = true;
+                payButton.innerHTML = `💳 Подтвердить и заплатить`;
+            }
+            
+            if (stars <= 0) {
+                conversionRate.textContent = 'Введите количество Stars';
+                conversionResult.textContent = '';
+                return;
+            }
+            
+            const gameAmount = stars * CONFIG.STARS_TO_GAME;
+            
+            conversionRate.textContent = `1 Stars = ${CONFIG.STARS_TO_GAME} вашей крипты`;
+            conversionResult.textContent = `Вы получите: ${gameAmount} вашей крипты`;
+        }
+
+        function processStarsPayment() {
+            if (currentStarsAmount <= 0) {
+                alert('Пожалуйста, введите корректное количество Stars');
+                return;
+            }
+            
+            const tg = window.Telegram.WebApp;
+            
+            // Создаем инвойс для оплаты через Telegram Stars
+            tg.openInvoice({
+                title: `Пополнение баланса в HeistCasino`,
+                description: `Покупка ${currentStarsAmount} Stars для пополнения игрового баланса`,
+                payload: `stars_deposit_${currentStarsAmount}_${Date.now()}`,
+                currency: 'XTR',
+                prices: [
+                    {
+                        label: `Пополнение на ${currentStarsAmount} Stars`,
+                        amount: currentStarsAmount * 100 // В копейках (1 Stars = 100 копеек)
+                    }
+                ]
+            }, (status) => {
+                if (status === 'paid') {
+                    // Платеж успешно завершен
+                    const gameAmount = currentStarsAmount * CONFIG.STARS_TO_GAME;
+                    
+                    // Показываем уведомление об успехе
+                    tg.showAlert(`✅ Успешно! Вы получили ${gameAmount} вашей крипты за ${currentStarsAmount} Stars`);
+                    
+                    // Закрываем модальное окно
+                    closeDepositModal();
+                    
+                    // Здесь можно добавить логику обновления баланса пользователя
+                    // updateUserBalance(gameAmount);
+                    
+                } else if (status === 'failed') {
+                    tg.showAlert('❌ Ошибка при оплате. Пожалуйста, попробуйте снова.');
+                } else if (status === 'cancelled') {
+                    console.log('Платеж отменен пользователем');
+                }
+            });
+        }
+
+        function updateUserBalance(amount) {
+            // Здесь должна быть логика обновления баланса пользователя
+            // Например, отправка запроса на сервер или обновление через Telegram Web App
+            console.log(`Баланс пользователя пополнен на: ${amount}`);
+            
+            // Пример обновления баланса на фронтенде
+            const balanceElement = document.getElementById('userBalance');
+            const currentBalance = parseFloat(balanceElement.textContent) || 0;
+            balanceElement.textContent = (currentBalance + amount).toFixed(2);
+        }
+
+        function resetForm() {
+            document.getElementById('starsInput').value = '';
+            currentStarsAmount = 0;
+            updateConversion();
+        }
+
         function navigateTo(page) {
             const menuItems = document.querySelectorAll('.menu-item');
             menuItems.forEach(item => item.classList.remove('active'));
             event.currentTarget.classList.add('active');
             console.log('Переход на страницу:', page);
-            
-            switch(page) {
-                case 'profile':
-                    break;
-                case 'tasks':
-                    break;
-                case 'roulette':
-                    break;
-                case 'shop':
-                    break;
-                case 'history':
-                    break;
-            }
-        }
-
-        function openBotForDeposit() {
-            const tg = window.Telegram.WebApp;
-
-            if (tg && tg.openTelegramLink) {
-                tg.openTelegramLink(`https://t.me/${CONFIG.BOT_USERNAME}?start=deposit`);
-            } else {
-                const botUrl = `tg://resolve?domain=${CONFIG.BOT_USERNAME}&start=deposit`;
-                window.location.href = botUrl;
-
-                setTimeout(() => {
-                    window.open(`https://t.me/${CONFIG.BOT_USERNAME}?start=deposit`, '_blank');
-                }, 500);
-            }
         }
 
         function openBotForWithdraw() {
             const tg = window.Telegram.WebApp;
-
-            if (tg && tg.openTelegramLink) {
-                tg.openTelegramLink(`https://t.me/${CONFIG.BOT_USERNAME}?start=withdraw`);
-            } else {
-                const botUrl = `tg://resolve?domain=${CONFIG.BOT_USERNAME}&start=withdraw`;
-                window.location.href = botUrl;
-
-                setTimeout(() => {
-                    window.open(`https://t.me/${CONFIG.BOT_USERNAME}?start=withdraw`, '_blank');
-                }, 500);
-            }
+            tg.showAlert('Функция вывода скоро будет доступна!');
         }
 
-        document.addEventListener('touchstart', function() {}, {passive: true});
-        
+        // Защита от копирования изображений
         document.addEventListener('contextmenu', event => {
             if (event.target.tagName === 'IMG') {
                 event.preventDefault();
@@ -573,14 +836,12 @@
             }
         }, { passive: false });
 
-        let lastTouchEnd = 0;
-        document.addEventListener('touchend', function (event) {
-            const now = (new Date()).getTime();
-            if (now - lastTouchEnd <= 300) {
-                event.preventDefault();
+        // Закрытие модального окна при клике вне его
+        document.addEventListener('click', (e) => {
+            if (e.target.id === 'depositModal') {
+                closeDepositModal();
             }
-            lastTouchEnd = now;
-        }, false);
+        });
 
         window.onload = initTelegramApp;
     </script>
