@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>HeistCasino - Профиль</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -11,33 +11,79 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
+        /* Отключение выделения текста и контекстного меню */
         body {
             font-family: 'Arial', sans-serif;
             background: #0f0f0f;
             color: white;
             min-height: 100vh;
             padding: 20px;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            -webkit-touch-callout: none;
+            overflow: hidden;
+            padding-bottom: 80px;
         }
-        
+        body, body * {
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+            user-select: none !important;
+            -webkit-touch-callout: none !important;
+            -webkit-user-drag: none !important;
+        }
+
+        .crypto-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .crypto-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            pointer-events: none;
+        }
+
         .container {
             max-width: 400px;
             margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 120px);
         }
-        
+
         .profile-card {
             background: rgba(139, 92, 246, 0.1);
             border: 2px solid #8B5CF6;
             border-radius: 20px;
             padding: 25px;
             margin-bottom: 25px;
+            position: relative;
         }
-        
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 25px;
+        }
+
         .profile-section {
             text-align: center;
             margin-bottom: 20px;
         }
-        
+
         .avatar {
             width: 100px;
             height: 100px;
@@ -52,42 +98,37 @@
             border: 3px solid #8B5CF6;
             overflow: hidden;
         }
-        
+
         .avatar-img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            pointer-events: none;
         }
-        
+
         .username {
             font-size: 20px;
             font-weight: bold;
             margin-bottom: 5px;
             color: white;
         }
-        
-        .telegram-username {
-            color: #8B5CF6;
-            font-size: 16px;
-            margin-bottom: 10px;
-        }
-        
+
         .user-id {
             color: #94A3B8;
             font-size: 14px;
             margin-bottom: 20px;
         }
-        
+
         .balance-section {
             text-align: center;
         }
-        
+
         .balance-label {
             color: #94A3B8;
             font-size: 14px;
             margin-bottom: 8px;
         }
-        
+
         .balance-container {
             display: flex;
             align-items: center;
@@ -95,14 +136,14 @@
             gap: 10px;
             margin-bottom: 5px;
         }
-        
+
         .balance-amount {
             font-size: 32px;
             font-weight: bold;
-            color: #8B5CF6;
+            color: #ffffff;
             user-select: none;
         }
-        
+
         .usdt-icon {
             width: 24px;
             height: 24px;
@@ -116,13 +157,7 @@
             color: white;
             user-select: none;
         }
-        
-        .action-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-        
+
         .action-btn {
             background: #8B5CF6;
             border: none;
@@ -134,14 +169,152 @@
             cursor: pointer;
             transition: all 0.3s ease;
         }
-        
+
         .action-btn:hover {
             background: #7C3AED;
             transform: translateY(-2px);
         }
-        
+
         .action-btn:active {
             transform: translateY(0);
+        }
+
+        /* Стили для инвентаря */
+        .inventory-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: rgba(139, 92, 246, 0.1);
+            border: 2px solid #8B5CF6;
+            border-radius: 20px;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .inventory-title {
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: white;
+        }
+
+        .inventory-container {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94A3B8;
+        }
+
+        /* Стилизация скроллбара для инвентаря */
+        .inventory-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .inventory-container::-webkit-scrollbar-track {
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 3px;
+        }
+
+        .inventory-container::-webkit-scrollbar-thumb {
+            background: #8B5CF6;
+            border-radius: 3px;
+        }
+
+        .inventory-container::-webkit-scrollbar-thumb:hover {
+            background: #7C3AED;
+        }
+
+        /* Нижнее меню */
+        .bottom-menu {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(15, 15, 15, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid #8B5CF6;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .menu-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            padding: 8px 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 10px;
+            min-height: 50px;
+        }
+
+        .menu-item.active {
+            background: rgba(139, 92, 246, 0.2);
+        }
+
+        .menu-icon {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 4px;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            -webkit-user-drag: none;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        .menu-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            pointer-events: none;
+            -webkit-user-drag: none;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        .menu-text {
+            font-size: 12px;
+            font-weight: 500;
+            color: #94A3B8;
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .menu-item.active .menu-icon,
+        .menu-item.active .menu-text {
+            color: #8B5CF6;
+        }
+
+        .menu-item:hover {
+            transform: translateY(-2px);
+        }
+
+        .menu-item:active {
+            transform: translateY(0);
+        }
+
+        .protected-image {
+            pointer-events: none;
+            -webkit-user-drag: none;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            -webkit-touch-callout: none;
         }
     </style>
 </head>
@@ -149,15 +322,14 @@
     <div class="container">
         <div class="profile-card">
             <div class="profile-section">
-                <div class="avatar" id="userAvatar">
-                    <!-- Аватарка будет загружена через JavaScript -->
-                </div>
+                <div class="avatar" id="userAvatar"></div>
                 <div class="username" id="userName">Загрузка...</div>
             </div>
-            
             <div class="balance-section">
                 <div class="balance-container">
-                    <div class="usdt-icon">$</div>
+                    <div class="crypto-icon">
+                        <img src="https://s3.iimg.su/s/19/ggtBKLOxrTWMssj4hn6hUA4BI3ahC9pQ7FekzHzO.jpg" alt="Crypto" class="protected-image" />
+                    </div>
                     <div class="balance-amount" id="userBalance">0.00</div>
                 </div>
             </div>
@@ -167,32 +339,71 @@
             <button class="action-btn" onclick="openBotForDeposit()">Пополнить</button>
             <button class="action-btn" onclick="openBotForWithdraw()">Вывести</button>
         </div>
+        
+        <div class="inventory-section">
+            <div class="inventory-title">Инвентарь</div>
+            <div class="inventory-container" id="inventoryContainer">
+                <div style="text-align: center; color: #94A3B8;">
+                    Инвентарь пуст
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-menu">
+        <div class="menu-item active" onclick="navigateTo('profile')">
+            <div class="menu-icon">
+                <img src="https://s3.iimg.su/s/19/gju6MLbx7lZF5quIOdqoHS6j8p6N8Bjz5vTdqO95.png" alt="Меню" class="protected-image" />
+            </div>
+            <div class="menu-text">Меню</div>
+        </div>
+        <div class="menu-item" onclick="navigateTo('tasks')">
+            <div class="menu-icon">
+                <img src="https://via.placeholder.com/24/8B5CF6/FFFFFF?text=Q" alt="Майнер" class="protected-image" />
+            </div>
+            <div class="menu-text">Майнер</div>
+        </div>
+        <div class="menu-item" onclick="navigateTo('roulette')">
+            <div class="menu-icon">
+                <img src="https://s3.iimg.su/s/19/gNb1bl3xdteUVp1hup5BiVZVNdSrnzbeVzlFzPRN.png" alt="Cases" class="protected-image" />
+            </div>
+            <div class="menu-text">Cases</div>
+        </div>
+        <div class="menu-item" onclick="navigateTo('shop')">
+            <div class="menu-icon">
+                <img src="https://s3.iimg.su/s/19/gXJoiOnxdWrhXXnzzw3M0dWAZtDRjpijYZqT4eYb.png" alt="Задания" class="protected-image" />
+            </div>
+            <div class="menu-text">Задания</div>
+        </div>
+        <div class="menu-item" onclick="navigateTo('history')">
+            <div class="menu-icon">
+                <img src="https://s3.iimg.su/s/19/gaBpORBx6t8NVDpTMuZjZKbq7ZNKj9Jhsg9Fgv7S.png" alt="Профиль" class="protected-image" />
+            </div>
+            <div class="menu-text">Профиль</div>
+        </div>
     </div>
 
     <script>
         const CONFIG = {
-            BOT_USERNAME: 'HeistCasinoBot'
+            BOT_USERNAME: 'FakeHeistCasino_bot'
         };
 
         function initTelegramApp() {
             try {
                 const tg = window.Telegram.WebApp;
                 tg.expand();
-                
+
                 const user = tg.initDataUnsafe.user;
                 if (user) {
                     const avatarElement = document.getElementById('userAvatar');
-                    
-                    // ВОТ ЭТОТ КОД ЗАГРУЖАЕТ АВАТАРКУ ПОЛЬЗОВАТЕЛЯ ИЗ ТЕЛЕГРАММ
+
                     if (user.photo_url) {
-                        avatarElement.innerHTML = `<img src="${user.photo_url}" alt="Avatar" class="avatar-img">`;
+                        avatarElement.innerHTML = `<img src="${user.photo_url}" alt="Avatar" class="avatar-img protected-image">`;
                     } else {
-                        // Если аватарки нет, показываем первую букву имени
                         const initial = user.first_name ? user.first_name.charAt(0).toUpperCase() : 'U';
                         avatarElement.textContent = initial;
                     }
-                    
-                    // Устанавливаем полное имя
+
                     let displayName = user.first_name || 'Пользователь';
                     if (user.last_name) {
                         displayName += ' ' + user.last_name;
@@ -205,13 +416,86 @@
             }
         }
 
+        function navigateTo(page) {
+            const menuItems = document.querySelectorAll('.menu-item');
+            menuItems.forEach(item => item.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            console.log('Переход на страницу:', page);
+            
+            switch(page) {
+                case 'profile':
+                    break;
+                case 'tasks':
+                    break;
+                case 'roulette':
+                    break;
+                case 'shop':
+                    break;
+                case 'history':
+                    break;
+            }
+        }
+
         function openBotForDeposit() {
-            window.open(`https://t.me/${CONFIG.BOT_USERNAME}?start=deposit`, '_blank');
+            const tg = window.Telegram.WebApp;
+
+            if (tg && tg.openTelegramLink) {
+                tg.openTelegramLink(`https://t.me/${CONFIG.BOT_USERNAME}?start=deposit`);
+            } else {
+                const botUrl = `tg://resolve?domain=${CONFIG.BOT_USERNAME}&start=deposit`;
+                window.location.href = botUrl;
+
+                setTimeout(() => {
+                    window.open(`https://t.me/${CONFIG.BOT_USERNAME}?start=deposit`, '_blank');
+                }, 500);
+            }
         }
 
         function openBotForWithdraw() {
-            window.open(`https://t.me/${CONFIG.BOT_USERNAME}?start=withdraw`, '_blank');
+            const tg = window.Telegram.WebApp;
+
+            if (tg && tg.openTelegramLink) {
+                tg.openTelegramLink(`https://t.me/${CONFIG.BOT_USERNAME}?start=withdraw`);
+            } else {
+                const botUrl = `tg://resolve?domain=${CONFIG.BOT_USERNAME}&start=withdraw`;
+                window.location.href = botUrl;
+
+                setTimeout(() => {
+                    window.open(`https://t.me/${CONFIG.BOT_USERNAME}?start=withdraw`, '_blank');
+                }, 500);
+            }
         }
+
+        document.addEventListener('contextmenu', event => {
+            if (event.target.tagName === 'IMG') {
+                event.preventDefault();
+            }
+        });
+
+        document.addEventListener('selectstart', event => event.preventDefault());
+        document.addEventListener('dragstart', event => {
+            if (event.target.tagName === 'IMG') {
+                event.preventDefault();
+            }
+        });
+
+        document.addEventListener('mousedown', (e) => {
+            if (e.target.tagName === 'IMG') {
+                e.preventDefault();
+            }
+        });
+
+        document.addEventListener('wheel', (e) => {
+            if (!e.target.closest('.inventory-container')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!e.target.closest('.inventory-container')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
 
         window.onload = initTelegramApp;
     </script>
