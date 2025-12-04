@@ -1,0 +1,1940 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VideoApp Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #000000;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            flex: 1;
+            padding: 20px;
+            padding-bottom: 100px;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+        
+        .upload-container {
+            width: 100%;
+            max-width: 260px;
+            margin: auto;
+            position: relative;
+        }
+        
+        .video-frame {
+            background: linear-gradient(135deg, #ff6b00, #ff8c00);
+            padding: 4px;
+            border-radius: 18px;
+            box-shadow: 0 8px 25px rgba(255, 107, 0, 0.3);
+            margin-bottom: 25px;
+        }
+        
+        .video-upload-area {
+            background: #1a1a1a;
+            border-radius: 15px;
+            width: 100%;
+            height: 480px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #333;
+        }
+        
+        .upload-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-placeholder:hover {
+            background: rgba(255, 107, 0, 0.05);
+        }
+        
+        .plus-container {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b00, #ff8c00);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 25px;
+            transition: transform 0.3s ease;
+        }
+        
+        .upload-placeholder:hover .plus-container {
+            transform: scale(1.1);
+        }
+        
+        .plus-icon {
+            font-size: 40px;
+            color: #fff;
+            font-weight: 300;
+        }
+        
+        .upload-text {
+            font-size: 16px;
+            color: #ccc;
+            text-align: center;
+            padding: 0 30px;
+            line-height: 1.5;
+        }
+        
+        .upload-subtext {
+            font-size: 14px;
+            color: #888;
+            margin-top: 10px;
+        }
+        
+        .video-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 14px;
+            display: none;
+            background: #000;
+        }
+        
+        .video-preview::-webkit-media-controls {
+            display: none !important;
+        }
+        
+        .video-preview {
+            pointer-events: none;
+        }
+        
+        .upload-btn {
+            background: linear-gradient(135deg, #ff6b00, #ff8c00);
+            color: white;
+            border: none;
+            padding: 16px 0;
+            border-radius: 12px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0 auto;
+            display: block;
+            width: 100%;
+            max-width: 260px;
+            transition: all 0.3s ease;
+            letter-spacing: 0.5px;
+        }
+        
+        .upload-btn:active {
+            transform: translateY(0);
+        }
+        
+        .upload-btn:disabled {
+            background: linear-gradient(135deg, #666, #777);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .floating-menu {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1a1a;
+            border: 2px solid #ff6b00;
+            border-radius: 16px;
+            padding: 12px;
+            display: flex;
+            gap: 15px;
+            z-index: 1000;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            min-width: 300px;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            background: rgba(26, 26, 26, 0.95);
+        }
+        
+        .menu-btn {
+            background: transparent;
+            border: none;
+            color: #ccc;
+            font-size: 13px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            padding: 10px 15px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            min-width: 70px;
+        }
+        
+        .menu-btn:hover {
+            background: rgba(255, 107, 0, 0.1);
+            color: #ff8c00;
+        }
+        
+        .menu-btn.active {
+            background: linear-gradient(135deg, #ff6b00, #ff8c00);
+            color: white;
+            box-shadow: 0 4px 12px rgba(255, 107, 0, 0.3);
+        }
+        
+        .menu-icon {
+            font-size: 22px;
+            margin-bottom: 6px;
+        }
+        
+        .admin-menu-btn {
+            background: linear-gradient(135deg, #ff3b00, #ff6b00);
+        }
+        
+        .page {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .page-title {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+            padding-bottom: 15px;
+        }
+        
+        .page-title:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(90deg, #ff6b00, #ff8c00);
+            border-radius: 2px;
+        }
+        
+        .stats-container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .user-id-display {
+            max-width: 400px;
+            margin: 0 auto;
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: rgba(255, 107, 0, 0.1);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 107, 0, 0.3);
+        }
+        
+        .user-id-label {
+            font-size: 14px;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+        
+        .user-id-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ff8c00;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-box {
+            background: #1a1a1a;
+            border: 1px solid #ff6b00;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            margin-top: 10px;
+            color: #ff8c00;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #aaa;
+            font-weight: 500;
+        }
+        
+        .admin-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .admin-header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #ff6b00;
+            font-size: 14px;
+        }
+        
+        .pending-video {
+            background: #1a1a1a;
+            border: 1px solid #ff6b00;
+            border-radius: 14px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .video-info {
+            margin: 15px 0;
+            color: #ccc;
+            font-size: 14px;
+        }
+        
+        .user-id {
+            color: #ff8c00;
+            font-weight: 600;
+        }
+        
+        .timer {
+            font-size: 13px;
+            color: #ff4444;
+            font-weight: 600;
+            background: rgba(255, 68, 68, 0.1);
+            padding: 4px 10px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 8px;
+        }
+        
+        .admin-controls {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+        
+        .admin-btn {
+            padding: 12px 25px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 15px;
+        }
+        
+        .approve-btn {
+            background: linear-gradient(90deg, #ff6b00, #ff8c00);
+            color: white;
+        }
+        
+        .reject-btn {
+            background: linear-gradient(135deg, #c0392b, #e74c3c);
+            color: white;
+        }
+        
+        .download-btn {
+            background: linear-gradient(135deg, #2980b9, #3498db);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 10px auto;
+            display: block;
+            transition: all 0.3s ease;
+        }
+        
+        .download-btn:hover {
+            background: linear-gradient(135deg, #1f639b, #2980b9);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+        
+        .referral-container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .ref-box {
+            background: #1a1a1a;
+            border: 1px solid #ff6b00;
+            border-radius: 14px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        
+        .ref-title {
+            color: #ff8c00;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .ref-link-container {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .ref-link {
+            flex: 1;
+            background: rgba(255, 107, 0, 0.1);
+            color: #ff8c00;
+            padding: 14px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            word-break: break-all;
+            border: 1px solid rgba(255, 107, 0, 0.3);
+        }
+        
+        .copy-btn {
+            background: linear-gradient(135deg, #ff6b00, #ff8c00);
+            color: white;
+            border: none;
+            padding: 14px 22px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            min-width: 100px;
+        }
+        
+        .copy-btn:hover {
+            background: linear-gradient(135deg, #ff5a00, #ff7b00);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 0, 0.3);
+        }
+        
+        .ref-info {
+            color: #aaa;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-top: 15px;
+        }
+        
+        .ref-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        .ref-stat {
+            background: rgba(255, 107, 0, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 107, 0, 0.2);
+        }
+        
+        .message {
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 30px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            z-index: 1001;
+            animation: slideDown 0.4s ease;
+            backdrop-filter: blur(10px);
+            background: rgba(26, 26, 26, 0.95);
+            border: 1px solid;
+            min-width: 300px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .success {
+            border-color: #27ae60;
+            background: rgba(39, 174, 96, 0.1);
+            color: #2ecc71;
+        }
+        
+        .error {
+            border-color: #e74c3c;
+            background: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+        }
+        
+        .info {
+            border-color: #3498db;
+            background: rgba(52, 152, 219, 0.1);
+            color: #3498db;
+        }
+        
+        @keyframes slideDown {
+            from {
+                top: -100px;
+                opacity: 0;
+            }
+            to {
+                top: 30px;
+                opacity: 1;
+            }
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #666;
+        }
+        
+        .empty-icon {
+            font-size: 50px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+        
+        #videoInput {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .floating-menu {
+                min-width: 280px;
+                gap: 10px;
+                padding: 10px;
+            }
+            
+            .menu-btn {
+                padding: 8px 12px;
+                min-width: 60px;
+                font-size: 12px;
+            }
+            
+            .menu-icon {
+                font-size: 20px;
+            }
+            
+            .video-upload-area {
+                height: 420px;
+            }
+            
+            .stats-grid,
+            .ref-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .admin-controls {
+                flex-direction: column;
+            }
+            
+            .admin-btn {
+                width: 100%;
+            }
+            
+            .ref-link-container {
+                flex-direction: column;
+            }
+            
+            .copy-btn {
+                width: 100%;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+                padding-bottom: 90px;
+            }
+            
+            .video-frame {
+                max-width: 280px;
+                margin: 30px auto;
+            }
+            
+            .video-upload-area {
+                height: 370px;
+            }
+            
+            .upload-btn {
+                max-width: 280px;
+            }
+        }
+        
+        .corner-decoration {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ff6b00;
+        }
+        
+        .top-left {
+            top: 10px;
+            left: 10px;
+            border-right: none;
+            border-bottom: none;
+        }
+        
+        .top-right {
+            top: 10px;
+            right: 10px;
+            border-left: none;
+            border-bottom: none;
+        }
+        
+        .bottom-left {
+            bottom: 10px;
+            left: 10px;
+            border-right: none;
+            border-top: none;
+        }
+        
+        .bottom-right {
+            bottom: 10px;
+            right: 10px;
+            border-left: none;
+            border-top: none;
+        }
+        
+        .progress-container {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+            display: none;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background: linear-gradient(90deg, #ff6b00, #ff8c00);
+            width: 0%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-text {
+            text-align: center;
+            color: #ff8c00;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        .admin-tools {
+            margin: 30px 0;
+            text-align: center;
+        }
+        
+        .admin-add-btn {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+        
+        .admin-add-btn:hover {
+            background: linear-gradient(135deg, #8e44ad, #9b59b6);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(155, 89, 182, 0.3);
+        }
+        
+        .video-preview-container {
+            width: 100%;
+            height: 300px;
+            background: #000;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .video-thumbnail {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .play-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 50px;
+            color: white;
+            opacity: 0.7;
+        }
+        
+        .admin-setup {
+            background: rgba(255, 107, 0, 0.1);
+            border: 1px solid rgba(255, 107, 0, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .setup-input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #ff6b00;
+            border-radius: 8px;
+            color: white;
+            margin: 10px 0;
+            font-size: 16px;
+            text-align: center;
+        }
+        
+        .setup-btn {
+            background: linear-gradient(135deg, #ff6b00, #ff8c00);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 10px 5px;
+        }
+        
+        .admin-video-frame {
+            background: linear-gradient(135deg, #ff6b00, #ff8c00);
+            padding: 4px;
+            border-radius: 18px;
+            margin: 20px 0;
+        }
+        
+        .admin-video-preview-container {
+            background: #1a1a1a;
+            border-radius: 15px;
+            width: 100%;
+            height: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #333;
+        }
+        
+        /* ДОБАВЛЯЮ СТИЛИ ДЛЯ ВИДЕО ВЕРТИКАЛЬНОГО ОТОБРАЖЕНИЯ */
+        .vertical-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: rotate(0deg);
+            /* Гарантируем вертикальную ориентацию */
+            aspect-ratio: 9/16;
+        }
+        
+        .video-frame-vertical {
+            background: linear-gradient(135deg, #ff6b00, #ff8c00);
+            padding: 4px;
+            border-radius: 18px;
+            box-shadow: 0 8px 25px rgba(255, 107, 0, 0.3);
+            margin-bottom: 25px;
+            max-width: 280px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .video-upload-area-vertical {
+            background: #1a1a1a;
+            border-radius: 15px;
+            width: 100%;
+            height: 480px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #333;
+        }
+        
+        .admin-video-preview-container-vertical {
+            background: #1a1a1a;
+            border-radius: 15px;
+            width: 100%;
+            height: 500px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #333;
+            margin: 10px 0;
+        }
+        
+        .admin-video-controls {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            z-index: 10;
+            padding: 10px;
+        }
+        
+        .admin-video-btn {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid #ff6b00;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .admin-video-btn:hover {
+            background: rgba(255, 107, 0, 0.7);
+        }
+        
+        .admin-play-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 107, 0, 0.8);
+            border: none;
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .admin-play-btn:hover {
+            background: rgba(255, 107, 0, 1);
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <div id="message" class="message" style="display: none;"></div>
+    
+    <div id="progressContainer" class="progress-container" style="display: none;">
+        <div class="progress-bar" id="progressBar"></div>
+        <div class="progress-text" id="progressText">Загрузка: 0%</div>
+    </div>
+    
+    <div id="mainPage" class="page active container">
+        <div class="upload-container">
+            <div class="video-frame-vertical">
+                <div class="video-upload-area-vertical">
+                    <div class="corner-decoration top-left"></div>
+                    <div class="corner-decoration top-right"></div>
+                    <div class="corner-decoration bottom-left"></div>
+                    <div class="corner-decoration bottom-right"></div>
+                    
+                    <div class="upload-placeholder" id="uploadPlaceholder">
+                        <div class="plus-container">
+                            <div class="plus-icon">+</div>
+                        </div>
+                        <div class="upload-text">Нажмите для загрузки видео</div>
+                    </div>
+                    <video class="video-preview vertical-video" id="videoPreview" muted></video>
+                </div>
+            </div>
+        </div>
+        <button class="upload-btn" id="uploadBtn" disabled>ОТПРАВИТЬ</button>
+    </div>
+    
+    <div id="statsPage" class="page container">
+        
+        <div class="user-id-display">
+            <div class="user-id-label">Ваш ID:</div>
+            <div class="user-id-value" id="userIdDisplay">Загрузка...</div>
+        </div>
+        
+        <div class="stats-container">
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-label">Текущий баланс</div>
+                    <div class="stat-value" id="balance">0₽</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Заработок сегодня</div>
+                    <div class="stat-value" id="dailyEarnings">0₽</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Загружено видео</div>
+                    <div class="stat-value" id="videosUploaded">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Реферальный баланс</div>
+                    <div class="stat-value" id="refBalance">0₽</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="referralPage" class="page container">
+        <div class="referral-container">
+            <div class="ref-box">
+                <div class="ref-title">Ваша реферальная ссылка</div>
+                <div class="ref-link-container">
+                    <div class="ref-link" id="refLink">Загрузка...</div>
+                    <button class="copy-btn" onclick="copyRefLink()">КОПИРОВАТЬ</button>
+                </div>
+                <div class="ref-info">Приглашайте друзей и получайте 50₽ за каждого приведенного пользователя!</div>
+            </div>
+            
+            <div class="ref-box">
+                <div class="ref-title">Статистика рефералов</div>
+                <div class="ref-stats">
+                    <div class="ref-stat">
+                        <div class="stat-label">Всего рефералов</div>
+                        <div class="stat-value" id="totalRefs">0</div>
+                    </div>
+                    <div class="ref-stat">
+                        <div class="stat-label">Доход сегодня</div>
+                        <div class="stat-value" id="refToday">0₽</div>
+                    </div>
+                    <div class="ref-stat">
+                        <div class="stat-label">Доход за месяц</div>
+                        <div class="stat-value" id="refMonth">0₽</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="adminPage" class="page container">
+        
+        <div class="admin-setup" id="adminSetup" style="display: none;">
+            <div class="ref-title">Настройка админ-доступа</div>
+            <div style="color: #aaa; margin-bottom: 15px; font-size: 14px;">
+                Введите ваш уникальный ID для получения прав администратора:
+            </div>
+            <input type="text" class="setup-input" id="adminIdInput" placeholder="Введите ваш 10-значный ID">
+            <div>
+                <button class="setup-btn" onclick="setAsAdmin()">Стать администратором</button>
+                <button class="setup-btn" onclick="generateAdminId()">Сгенерировать ID</button>
+            </div>
+            <div style="color: #666; font-size: 12px; margin-top: 10px;">
+                Ваш текущий ID: <span id="currentUserId" style="color: #ff8c00;"></span>
+            </div>
+        </div>
+    
+        <div class="admin-header">Проверка загруженных видео</div>
+        <div class="admin-container" id="adminVideos">
+        </div>
+    </div>
+    
+    <div class="floating-menu">
+        <button class="menu-btn" data-page="statsPage">
+            <div class="menu-icon">📈</div>
+            <div>Статистика</div>
+        </button>
+        <button class="menu-btn active" data-page="mainPage">
+            <div class="menu-icon">🎬</div>
+            <div>Загрузить</div>
+        </button>
+        <button class="menu-btn" data-page="referralPage">
+            <div class="menu-icon">👥</div>
+            <div>Рефералы</div>
+        </button>
+        <button class="menu-btn admin-only" id="adminMenuBtn" data-page="adminPage" style="display: none;">
+            <div class="menu-icon">🛡️</div>
+            <div>Модерация</div>
+        </button>
+    </div>
+    
+    <input type="file" id="videoInput" accept="video/*">
+    
+    <script>
+        let selectedVideo = null;
+        let userId = null;
+        let isAdmin = false;
+        let pendingVideos = [];
+        let telegramUserId = null;
+        let videoStorage = {}; 
+        
+        const userData = {
+            balance: 0,
+            dailyEarnings: 0,
+            videosUploaded: 0,
+            refBalance: 0,
+            totalRefs: 0,
+            refToday: 0,
+            refMonth: 0,
+            referrals: []
+        };
+        
+        const ADMIN_IDS = [
+            '5431673515'
+        ];
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('DOM loaded, initializing...');
+            
+            userId = await getUserId();
+            console.log('User ID:', userId);
+            
+            document.getElementById('userIdDisplay').textContent = userId;
+            document.getElementById('currentUserId').textContent = userId;
+            
+            checkIfAdmin();
+            updateRefLink();
+            updateStats();
+            loadUserData();
+            loadVideoStorage();
+            
+            setupEventListeners();
+            
+            if (isAdmin) {
+                console.log('User is admin, loading pending videos...');
+                await loadPendingVideos();
+                startAutoRejectTimer();
+                document.getElementById('adminTools').style.display = 'block';
+                document.getElementById('adminSetup').style.display = 'none';
+            } else {
+                document.getElementById('adminSetup').style.display = 'block';
+            }
+            
+            setTimeout(checkReferral, 1000);
+            
+            setTimeout(() => {
+                document.body.style.opacity = '1';
+            }, 100);
+        });
+        
+        function loadVideoStorage() {
+            const savedStorage = localStorage.getItem('videoStorage');
+            if (savedStorage) {
+                try {
+                    videoStorage = JSON.parse(savedStorage);
+                    console.log('Video storage loaded:', Object.keys(videoStorage).length, 'videos');
+                } catch (e) {
+                    console.error('Error loading video storage:', e);
+                    videoStorage = {};
+                }
+            }
+        }
+        
+        function saveVideoStorage() {
+            try {
+                localStorage.setItem('videoStorage', JSON.stringify(videoStorage));
+                console.log('Video storage saved:', Object.keys(videoStorage).length, 'videos');
+            } catch (e) {
+                console.error('Error saving video storage:', e);
+            }
+        }
+        
+        async function getUserId() {
+            telegramUserId = getTelegramUserId();
+            
+            if (telegramUserId) {
+                console.log('Using Telegram ID:', telegramUserId);
+                localStorage.setItem('telegramUserId', telegramUserId);
+                localStorage.setItem('userId', telegramUserId);
+                return telegramUserId;
+            }
+            
+            let savedId = localStorage.getItem('userId');
+            
+            if (!savedId) {
+                savedId = generateNumericId();
+                localStorage.setItem('userId', savedId);
+                console.log('Generated new user ID:', savedId);
+            }
+            
+            return savedId;
+        }
+        
+        function getTelegramUserId() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const startParam = urlParams.get('start');
+            
+            if (startParam && startParam.startsWith('ref_')) {
+                const refCode = startParam.replace('ref_', '');
+                try {
+                    const referrerId = atob(refCode);
+                    console.log('Referrer ID from Telegram:', referrerId);
+                    localStorage.setItem('referrerId', referrerId);
+
+                    if (referrerId.startsWith('tg') || /^\d+$/.test(referrerId)) {
+                        return referrerId;
+                    }
+                } catch (e) {
+                    console.error('Error parsing referral:', e);
+                }
+            }
+            
+            const savedTgId = localStorage.getItem('telegramUserId');
+            if (savedTgId) {
+                return savedTgId;
+            }
+            
+            if (window.Telegram && Telegram.WebApp) {
+                const tgUser = Telegram.WebApp.initDataUnsafe.user;
+                if (tgUser && tgUser.id) {
+                    const tgId = tgUser.id.toString();
+                    console.log('Telegram WebApp user ID:', tgId);
+                    return 'tg' + tgId;
+                }
+            }
+            
+            return null;
+        }
+        
+        function generateNumericId() {
+            let id = '';
+            for (let i = 0; i < 10; i++) {
+                id += Math.floor(Math.random() * 10);
+            }
+            return id;
+        }
+        
+        function checkIfAdmin() {
+            console.log('Checking admin status for user:', userId);
+            
+            isAdmin = ADMIN_IDS.includes(userId);
+            
+            console.log('Is admin:', isAdmin);
+            
+            if (isAdmin) {
+                document.getElementById('adminMenuBtn').style.display = 'flex';
+                document.getElementById('adminMenuBtn').classList.add('admin-menu-btn');
+                showMessage('Вы вошли как администратор', 'info');
+            }
+        }
+        
+        function setAsAdmin() {
+            const inputId = document.getElementById('adminIdInput').value.trim();
+            
+            if (!inputId) {
+                showMessage('Введите ваш ID', 'error');
+                return;
+            }
+            
+            if (inputId !== userId) {
+                showMessage('Это не ваш ID! Введите ваш ID.', 'error');
+                return;
+            }
+            
+            if (!ADMIN_IDS.includes(userId)) {
+                ADMIN_IDS.push(userId);
+                console.log('Added to admin list:', userId);
+                localStorage.setItem('adminIds', JSON.stringify(ADMIN_IDS));
+            }
+            
+            isAdmin = true;
+            document.getElementById('adminMenuBtn').style.display = 'flex';
+            document.getElementById('adminMenuBtn').classList.add('admin-menu-btn');
+            document.getElementById('adminTools').style.display = 'block';
+            document.getElementById('adminSetup').style.display = 'none';
+            
+            showMessage('Режим администратора активирован!', 'success');
+            
+            setTimeout(() => loadPendingVideos(), 500);
+        }
+        
+        function generateAdminId() {
+            const newId = generateNumericId();
+            document.getElementById('adminIdInput').value = newId;
+            showMessage('Сгенерирован новый ID: ' + newId, 'info');
+        }
+        
+        function updateRefLink() {
+            let refId = telegramUserId || userId;
+            
+            let refCode;
+            if (refId.startsWith('tg')) {
+                refCode = btoa(refId).replace(/=/g, '');
+            } else {
+                refCode = btoa('tgref_' + refId).replace(/=/g, '');
+            }
+            
+            const botLink = 'https://t.me/VideoAppBot?start=ref_';
+            const refLink = botLink + refCode;
+            
+            document.getElementById('refLink').textContent = refLink;
+            localStorage.setItem('refCode', refCode);
+        }
+        
+        function checkReferral() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const startParam = urlParams.get('start');
+            
+            if (startParam && startParam.startsWith('ref_')) {
+                const refCode = startParam.replace('ref_', '');
+                try {
+                    const referrerId = atob(refCode);
+                    console.log('Referral detected from:', referrerId);
+
+                    if (referrerId !== userId && referrerId !== telegramUserId) {
+                        addReferralBonus(referrerId, 50);
+                        
+                        showMessage('Реферальная ссылка активирована!', 'success');
+                    }
+                } catch (e) {
+                    console.error('Error parsing referral:', e);
+                }
+            }
+        }
+        
+        function addReferralBonus(referrerId, amount) {
+            let allUsers = JSON.parse(localStorage.getItem('allUsers') || '{}');
+            
+            if (!allUsers[referrerId]) {
+                allUsers[referrerId] = {
+                    balance: 0,
+                    refBalance: 0,
+                    referrals: []
+                };
+            }
+            
+            allUsers[referrerId].refBalance += amount;
+            allUsers[referrerId].refToday = (allUsers[referrerId].refToday || 0) + amount;
+            allUsers[referrerId].totalRefs = (allUsers[referrerId].totalRefs || 0) + 1;
+            
+            localStorage.setItem('allUsers', JSON.stringify(allUsers));
+            
+            console.log(`Added ${amount}₽ to referrer ${referrerId}`);
+        }
+        
+        function copyRefLink() {
+            const link = document.getElementById('refLink').textContent;
+            navigator.clipboard.writeText(link).then(() => {
+                showMessage('Ссылка скопирована в буфер обмена', 'success');
+            }).catch(err => {
+                const textArea = document.createElement('textarea');
+                textArea.value = link;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showMessage('Ссылка скопирована в буфер обмена', 'success');
+            });
+        }
+        
+        function updateStats() {
+            document.getElementById('balance').textContent = userData.balance + '₽';
+            document.getElementById('dailyEarnings').textContent = userData.dailyEarnings + '₽';
+            document.getElementById('videosUploaded').textContent = userData.videosUploaded;
+            document.getElementById('refBalance').textContent = userData.refBalance + '₽';
+            document.getElementById('totalRefs').textContent = userData.totalRefs;
+            document.getElementById('refToday').textContent = userData.refToday + '₽';
+            document.getElementById('refMonth').textContent = userData.refMonth + '₽';
+        }
+        
+        function setupEventListeners() {
+            console.log('Setting up event listeners...');
+            
+            document.getElementById('uploadPlaceholder').addEventListener('click', () => {
+                console.log('Upload placeholder clicked');
+                document.getElementById('videoInput').click();
+            });
+            
+            document.getElementById('videoInput').addEventListener('change', handleVideoSelect);
+            
+            document.getElementById('uploadBtn').addEventListener('click', uploadVideo);
+            
+            document.querySelectorAll('.menu-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const pageId = btn.getAttribute('data-page');
+                    console.log('Switching to page:', pageId);
+                    switchPage(pageId);
+                });
+            });
+            
+            window.addEventListener('beforeunload', saveUserData);
+            
+            setupDragAndDrop();
+        }
+        
+        function setupDragAndDrop() {
+            const dropArea = document.getElementById('uploadPlaceholder');
+            
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, highlight, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, unhighlight, false);
+            });
+            
+            function highlight() {
+                dropArea.style.background = 'rgba(255, 107, 0, 0.1)';
+            }
+            
+            function unhighlight() {
+                dropArea.style.background = '';
+            }
+            
+            dropArea.addEventListener('drop', handleDrop, false);
+            
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                
+                if (files.length > 0) {
+                    const file = files[0];
+                    if (file.type.startsWith('video/')) {
+                        simulateFileInput(file);
+                    } else {
+                        showMessage('Пожалуйста, выберите видео файл', 'error');
+                    }
+                }
+            }
+        }
+        
+        function simulateFileInput(file) {
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            document.getElementById('videoInput').files = dataTransfer.files;
+            
+            const event = new Event('change', { bubbles: true });
+            document.getElementById('videoInput').dispatchEvent(event);
+        }
+        
+        function handleVideoSelect(event) {
+            console.log('Video selected');
+            const file = event.target.files[0];
+            if (!file) {
+                console.log('No file selected');
+                return;
+            }
+            
+            console.log('File selected:', file.name, file.type, formatFileSize(file.size));
+            
+            if (!file.type.startsWith('video/')) {
+                console.log('Not a video file');
+                showMessage('Пожалуйста, выберите видео файл', 'error');
+                return;
+            }
+            
+            const maxSize = 500 * 1024 * 1024;
+            if (file.size > maxSize) {
+                console.log('File too large:', file.size);
+                showMessage('Файл слишком большой!', 'error');
+                return;
+            }
+            
+            const videoPreview = document.getElementById('videoPreview');
+            const uploadPlaceholder = document.getElementById('uploadPlaceholder');
+            const uploadBtn = document.getElementById('uploadBtn');
+            
+            const videoURL = URL.createObjectURL(file);
+            videoPreview.src = videoURL;
+            
+            videoPreview.classList.add('vertical-video');
+            
+            videoPreview.onloadedmetadata = () => {
+                console.log('Video metadata loaded, duration:', videoPreview.duration);
+                if (videoPreview.duration > 15) {
+                    showMessage('Видео должно быть не длиннее 15 секунд', 'error');
+                    videoPreview.src = '';
+                    uploadPlaceholder.style.display = 'flex';
+                    videoPreview.style.display = 'none';
+                    uploadBtn.disabled = true;
+                    selectedVideo = null;
+                    URL.revokeObjectURL(videoURL);
+                } else {
+                    uploadPlaceholder.style.display = 'none';
+                    videoPreview.style.display = 'block';
+                    uploadBtn.disabled = false;
+                    selectedVideo = file;
+                    
+                    videoPreview.muted = true;
+                    videoPreview.pause();
+                    
+                    showMessage('Видео готово к отправке (до 15 сек)', 'success');
+                }
+            };
+            
+            videoPreview.onerror = () => {
+                console.error('Error loading video');
+                URL.revokeObjectURL(videoURL);
+            };
+        }
+        
+        function uploadVideo() {
+            console.log('Upload video clicked');
+            if (!selectedVideo) {
+                console.log('No video selected');
+                showMessage('Сначала выберите видео', 'error');
+                return;
+            }
+            
+            console.log('Uploading video:', selectedVideo.name, formatFileSize(selectedVideo.size));
+            
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            const uploadBtn = document.getElementById('uploadBtn');
+            
+            progressContainer.style.display = 'block';
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = 'ЗАГРУЗКА...';
+            
+            try {
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 10;
+                    if (progress > 100) progress = 100;
+                    
+                    progressBar.style.width = progress + '%';
+                    progressText.textContent = `Загрузка: ${Math.round(progress)}%`;
+                    
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            const videoId = 'video_' + Date.now() + '_' + userId;
+                            const videoData = {
+                                id: videoId,
+                                userId: userId,
+                                videoName: selectedVideo.name,
+                                videoSize: selectedVideo.size,
+                                videoType: selectedVideo.type,
+                                timestamp: Date.now(),
+                                status: 'pending',
+                                duration: document.getElementById('videoPreview').duration || 0,
+                                dataUrl: e.target.result 
+                            };
+                            
+                            videoStorage[videoId] = {
+                                dataUrl: e.target.result,
+                                userId: userId,
+                                timestamp: Date.now()
+                            };
+                            saveVideoStorage();
+                            
+                            saveVideoToStorage(videoData);
+                            
+                            userData.videosUploaded++;
+                            updateStats();
+                            
+                            resetUploadForm();
+                            
+                            setTimeout(() => {
+                                progressContainer.style.display = 'none';
+                                progressBar.style.width = '0%';
+                                progressText.textContent = 'Загрузка: 0%';
+                                uploadBtn.textContent = 'ОТПРАВИТЬ НА ПРОВЕРКУ';
+                            }, 1000);
+                            
+                            showMessage('Видео успешно загружено и отправлено на модерацию!', 'success');
+                            
+                            if (isAdmin) {
+                                console.log('Admin uploaded video, refreshing list');
+                                setTimeout(() => loadPendingVideos(), 500);
+                            }
+                            
+                            saveUserData();
+                            
+                            console.log('Video uploaded successfully');
+                        };
+                        
+                        reader.onerror = function() {
+                            console.error('Error reading video file');
+                            showMessage('Ошибка при чтении видео файла', 'error');
+                            progressContainer.style.display = 'none';
+                            uploadBtn.disabled = false;
+                            uploadBtn.textContent = 'ОТПРАВИТЬ НА ПРОВЕРКУ';
+                        };
+                        
+                        reader.readAsDataURL(selectedVideo);
+                    }
+                }, 200);
+            } catch (error) {
+                console.error('Error uploading video:', error);
+                showMessage('Ошибка при загрузке видео. Попробуйте еще раз.', 'error');
+                
+                progressContainer.style.display = 'none';
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = 'ОТПРАВИТЬ НА ПРОВЕРКУ';
+            }
+        }
+        
+        function saveVideoToStorage(videoData) {
+            let videos = JSON.parse(localStorage.getItem('pendingVideos') || '[]');
+            
+            videos.push({
+                ...videoData,
+                hasVideoData: true
+            });
+            
+            if (videos.length > 100) {
+                videos = videos.slice(-100);
+            }
+            
+            localStorage.setItem('pendingVideos', JSON.stringify(videos));
+            console.log('Video saved to pending videos, total:', videos.length);
+        }
+        
+        function resetUploadForm() {
+            const videoPreview = document.getElementById('videoPreview');
+            if (videoPreview.src) {
+                URL.revokeObjectURL(videoPreview.src);
+            }
+            
+            videoPreview.src = '';
+            videoPreview.style.display = 'none';
+            document.getElementById('uploadPlaceholder').style.display = 'flex';
+            document.getElementById('uploadBtn').disabled = true;
+            document.getElementById('videoInput').value = '';
+            selectedVideo = null;
+        }
+        
+        async function loadPendingVideos() {
+            console.log('Loading pending videos...');
+            if (!isAdmin) {
+                console.log('Not admin, skipping');
+                return;
+            }
+            
+            const videosContainer = document.getElementById('adminVideos');
+            videosContainer.innerHTML = '';
+            
+            let videos = JSON.parse(localStorage.getItem('pendingVideos') || '[]');
+            
+            videos = videos.filter(v => v.status === 'pending');
+            
+            videos.sort((a, b) => a.timestamp - b.timestamp);
+            
+            pendingVideos = videos;
+            
+            console.log('Found pending videos:', videos.length);
+            
+            if (videos.length === 0) {
+                videosContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📭</div>
+                        <div>Нет видео на проверку</div>
+                        <div style="margin-top: 10px; font-size: 14px; color: #666;">Все видео обработаны</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            videos.reverse().forEach((video, index) => {
+                const videoElement = createAdminVideoElement(video, index);
+                videosContainer.appendChild(videoElement);
+            });
+        }
+        
+        function createAdminVideoElement(video, index) {
+            const div = document.createElement('div');
+            div.className = 'pending-video';
+            div.id = `video-${video.id}`;
+            
+            const timeLeft = 24 * 60 * 60 * 1000 - (Date.now() - video.timestamp);
+            const hoursLeft = Math.max(0, Math.floor(timeLeft / (60 * 60 * 1000)));
+            const minutesLeft = Math.max(0, Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000)));
+            
+            const timeString = hoursLeft > 0 ? 
+                `${hoursLeft}ч ${minutesLeft}м` : 
+                `${minutesLeft} минут`;
+            
+            div.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong>Видео от:</strong> 
+                        <span class="user-id">${video.userId}</span>
+                    </div>
+                    <div class="timer">⏳ ${timeString}</div>
+                </div>
+                <div class="admin-video-frame">
+                    <div class="admin-video-preview-container-vertical" id="admin-video-${video.id}">
+                        <div class="play-overlay">🎬</div>
+                        <div style="text-align: center; color: #888; font-size: 16px;">
+                            Видео загружено пользователем ${video.userId}
+                        </div>
+                        <button class="admin-play-btn" onclick="playAdminVideo('${video.id}')">▶️</button>
+                    </div>
+                </div>
+                <div class="admin-controls">
+                    <button class="approve-btn admin-btn" onclick="approveVideo('${video.id}', ${index})">ОДОБРИТЬ</button>
+                    <button class="reject-btn admin-btn" onclick="rejectVideo('${video.id}', ${index})">ОТКЛОНИТЬ</button>
+                </div>
+            `;
+            
+            return div;
+        }
+        
+        function playAdminVideo(videoId) {
+            console.log('Playing admin video:', videoId);
+            
+            const videoData = videoStorage[videoId];
+            if (!videoData) {
+                showMessage('Видео не найдено в хранилище', 'error');
+                return;
+            }
+            
+            const container = document.getElementById(`admin-video-${videoId}`);
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            const videoElement = document.createElement('video');
+            videoElement.className = 'vertical-video';
+            videoElement.src = videoData.dataUrl;
+            videoElement.controls = true;
+            videoElement.muted = false;
+            videoElement.style.width = '100%';
+            videoElement.style.height = '100%';
+            videoElement.style.objectFit = 'cover';
+            
+            const controlsDiv = document.createElement('div');
+            controlsDiv.className = 'admin-video-controls';
+            controlsDiv.innerHTML = `
+                <button class="admin-video-btn" onclick="closeAdminVideo('${videoId}')">✕ Закрыть</button>
+                <button class="admin-video-btn" onclick="restartAdminVideo('${videoId}')">↺ Повторить</button>
+            `;
+            
+            container.appendChild(videoElement);
+            container.appendChild(controlsDiv);
+            
+            videoElement.play().catch(e => {
+                console.log('Autoplay prevented, showing controls');
+                videoElement.controls = true;
+            });
+            
+            showMessage('Видео загружено для просмотра', 'info');
+        }
+        
+        function closeAdminVideo(videoId) {
+            const container = document.getElementById(`admin-video-${videoId}`);
+            if (!container) return;
+            
+            const videoElement = container.querySelector('video');
+            if (videoElement) {
+                videoElement.pause();
+            }
+            
+            const timeLeft = 24 * 60 * 60 * 1000 - (Date.now() - (videoStorage[videoId]?.timestamp || Date.now()));
+            const hoursLeft = Math.max(0, Math.floor(timeLeft / (60 * 60 * 1000)));
+            const minutesLeft = Math.max(0, Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000)));
+            const timeString = hoursLeft > 0 ? `${hoursLeft}ч ${minutesLeft}м` : `${minutesLeft} минут`;
+            
+            const video = pendingVideos.find(v => v.id === videoId);
+            
+            container.innerHTML = `
+                <div class="play-overlay">🎬</div>
+                <div style="text-align: center; color: #888; font-size: 16px;">
+                    Видео загружено пользователем ${video?.userId || 'unknown'}
+                </div>
+                <button class="admin-play-btn" onclick="playAdminVideo('${videoId}')">▶️</button>
+            `;
+        }
+        
+        function restartAdminVideo(videoId) {
+            const container = document.getElementById(`admin-video-${videoId}`);
+            if (!container) return;
+            
+            const videoElement = container.querySelector('video');
+            if (videoElement) {
+                videoElement.currentTime = 0;
+                videoElement.play().catch(e => {
+                    console.log('Restart play prevented');
+                });
+            }
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        function approveVideo(videoId, index) {
+            const video = pendingVideos[index];
+            console.log('Approving video:', video.userId);
+            
+            if (video.userId !== userId) {
+                let allUsers = JSON.parse(localStorage.getItem('allUsers') || '{}');
+                
+                if (!allUsers[video.userId]) {
+                    allUsers[video.userId] = {
+                        balance: 0,
+                        dailyEarnings: 0,
+                        videosUploaded: 0
+                    };
+                }
+                
+                allUsers[video.userId].balance += 150;
+                allUsers[video.userId].dailyEarnings += 150;
+                
+                localStorage.setItem('allUsers', JSON.stringify(allUsers));
+                
+                showMessage(`Видео одобрено! Пользователю ${video.userId}`, 'success');
+            } else {
+                userData.balance += 150;
+                userData.dailyEarnings += 150;
+                updateStats();
+                saveUserData();
+                showMessage('Видео одобрено!', 'success');
+            }
+            
+            updateVideoStatus(videoId, 'approved');
+            removePendingVideo(index);
+            loadPendingVideos();
+        }
+        
+        function rejectVideo(videoId, index) {
+            const video = pendingVideos[index];
+            console.log('Rejecting video:', video.userId);
+            
+            showMessage(`Видео отклонено!`, 'error');
+            
+            updateVideoStatus(videoId, 'rejected');
+            removePendingVideo(index);
+            loadPendingVideos();
+        }
+        
+        function updateVideoStatus(videoId, status) {
+            let videos = JSON.parse(localStorage.getItem('pendingVideos') || '[]');
+            const videoIndex = videos.findIndex(v => v.id === videoId);
+            
+            if (videoIndex !== -1) {
+                videos[videoIndex].status = status;
+                localStorage.setItem('pendingVideos', JSON.stringify(videos));
+            }
+        }
+        
+        function removePendingVideo(index) {
+            pendingVideos.splice(index, 1);
+            console.log('Video removed from pending list');
+        }
+        
+        function startAutoRejectTimer() {
+            setInterval(() => {
+                let videos = JSON.parse(localStorage.getItem('pendingVideos') || '[]');
+                const now = Date.now();
+                let changed = false;
+                
+                videos = videos.map(v => {
+                    if (v.status === 'pending' && (now - v.timestamp) > 24 * 60 * 60 * 1000) {
+                        v.status = 'auto-rejected';
+                        changed = true;
+                    }
+                    return v;
+                });
+                
+                if (changed) {
+                    localStorage.setItem('pendingVideos', JSON.stringify(videos));
+                    loadPendingVideos();
+                }
+            }, 60000);
+        }
+        
+        function switchPage(pageId) {
+            console.log('Switching to page:', pageId);
+            
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            document.getElementById(pageId).classList.add('active');
+            
+            document.querySelectorAll('.menu-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-page') === pageId) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            if (pageId === 'adminPage' && isAdmin) {
+                console.log('Loading admin videos...');
+                setTimeout(() => loadPendingVideos(), 100);
+            }
+            
+            window.scrollTo(0, 0);
+        }
+        
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 4000);
+        }
+        
+        function loadUserData() {
+            const savedData = localStorage.getItem('userData_' + userId);
+            if (savedData) {
+                try {
+                    const parsedData = JSON.parse(savedData);
+                    Object.assign(userData, parsedData);
+                    updateStats();
+                } catch (e) {
+                }
+            }
+            
+            const allUsers = JSON.parse(localStorage.getItem('allUsers') || '{}');
+            if (allUsers[userId]) {
+                Object.assign(userData, allUsers[userId]);
+                updateStats();
+            }
+        }
+        
+        function saveUserData() {
+            try {
+                localStorage.setItem('userData_' + userId, JSON.stringify(userData));
+                
+                let allUsers = JSON.parse(localStorage.getItem('allUsers') || '{}');
+                allUsers[userId] = userData;
+                localStorage.setItem('allUsers', JSON.stringify(allUsers));
+            } catch (e) {
+                console.error('Ошибка сохранения данных:', e);
+            }
+        }
+        
+        function addAdminBalance() {
+            if (!isAdmin) {
+                showMessage('Только для администраторов', 'error');
+                return;
+            }
+            
+            userData.balance += 1000;
+            userData.dailyEarnings += 1000;
+            updateStats();
+            saveUserData();
+            showMessage('+1000₽ добавлено на ваш баланс!', 'success');
+        }
+        
+        function clearAllVideos() {
+            if (!isAdmin) {
+                showMessage('Только для администраторов', 'error');
+                return;
+            }
+            
+            if (confirm('Вы уверены, что хотите удалить все видео?')) {
+                localStorage.removeItem('pendingVideos');
+                pendingVideos = [];
+                loadPendingVideos();
+                showMessage('Все видео очищены', 'success');
+            }
+        }
+        
+        function addTestVideo() {
+            if (!isAdmin) {
+                showMessage('Только для администраторов', 'error');
+                return;
+            }
+            
+            const testVideoData = {
+                id: 'test_video_' + Date.now(),
+                userId: 'TEST_' + generateNumericId(),
+                videoName: 'test_video.mp4',
+                videoSize: 1024 * 1024 * 5,
+                videoType: 'video/mp4',
+                timestamp: Date.now() - Math.floor(Math.random() * 24 * 60 * 60 * 1000),
+                status: 'pending',
+                duration: Math.random() * 15
+            };
+            
+            let videos = JSON.parse(localStorage.getItem('pendingVideos') || '[]');
+            videos.push(testVideoData);
+            localStorage.setItem('pendingVideos', JSON.stringify(videos));
+            
+            loadPendingVideos();
+            showMessage('Тестовое видео добавлено', 'success');
+        }
+        
+        function exportAllData() {
+            if (!isAdmin) {
+                showMessage('Только для администраторов', 'error');
+                return;
+            }
+            
+            const allUsers = JSON.parse(localStorage.getItem('allUsers') || '{}');
+            const videos = JSON.parse(localStorage.getItem('pendingVideos') || '[]');
+            
+            const exportData = {
+                exportDate: new Date().toISOString(),
+                adminId: userId,
+                totalUsers: Object.keys(allUsers).length,
+                totalVideos: videos.length,
+                pendingVideos: videos.filter(v => v.status === 'pending').length,
+                approvedVideos: videos.filter(v => v.status === 'approved').length,
+                rejectedVideos: videos.filter(v => v.status === 'rejected').length,
+                users: allUsers,
+                videos: videos
+            };
+            
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `videoapp_export_${new Date().toISOString().slice(0,10)}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+            
+            showMessage('Данные экспортированы', 'success');
+        }
+        
+    </script>
+</body>
+</html>
