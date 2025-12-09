@@ -4,59 +4,140 @@
     <title>Мой Telegram ID</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- ВАЖНО: Подключаем SDK Telegram ПЕРВЫМ! -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #18222d;
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+            padding-top: 50px;
+        }
+        h1 {
+            color: #50a8eb;
+            margin-bottom: 30px;
+        }
+        #user-id {
+            font-size: 32px;
+            font-weight: bold;
+            background: #2b3a4a;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            word-break: break-all;
+        }
+        .info-box {
+            background: #2b3a4a;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: left;
+        }
+        button {
+            background: #50a8eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .error {
+            color: #ff6b6b;
+            font-size: 18px;
+        }
+    </style>
 </head>
 <body>
-    <div id="app">
-        <h1>Ваш Telegram ID:</h1>
+    <div class="container">
+        <h1>🆔 Ваш Telegram ID:</h1>
         <div id="user-id">Загрузка...</div>
         <div id="user-info"></div>
+        <div id="error" class="error" style="display: none;"></div>
     </div>
-    
+
     <script>
-        // Telegram Web App SDK
-        const tg = window.Telegram.WebApp;
-        
-        // Расширяем на весь экран
-        tg.expand();
-        
-        // Получаем данные пользователя
-        const user = tg.initDataUnsafe.user;
-        
-        if (user) {
-            // Показываем ID
-            document.getElementById('user-id').innerHTML = 
-                `<strong style="font-size: 24px;">${user.id}</strong>`;
-            
-            // Дополнительная информация
-            let info = '';
-            if (user.first_name) info += `Имя: ${user.first_name}<br>`;
-            if (user.last_name) info += `Фамилия: ${user.last_name}<br>`;
-            if (user.username) info += `Username: @${user.username}<br>`;
-            
-            document.getElementById('user-info').innerHTML = info;
-            
-            // Кнопка для копирования
-            const btn = document.createElement('button');
-            btn.innerHTML = '📋 Скопировать ID';
-            btn.style = 'padding: 10px 20px; font-size: 16px; margin-top: 20px;';
-            btn.onclick = function() {
-                navigator.clipboard.writeText(user.id);
-                btn.innerHTML = '✅ Скопировано!';
-                setTimeout(() => btn.innerHTML = '📋 Скопировать ID', 2000);
-            };
-            document.getElementById('app').appendChild(btn);
-            
-        } else {
-            document.getElementById('user-id').innerHTML = 
-                '❌ Откройте этот сайт через Telegram бота!';
-        }
-        
-        // Делаем фон как в Telegram
-        document.body.style.background = tg.themeParams.bg_color || '#18222d';
-        document.body.style.color = tg.themeParams.text_color || '#ffffff';
+        // Ждем загрузки Telegram SDK
+        document.addEventListener('DOMContentLoaded', function() {
+            // Проверяем, открыто ли в Telegram Web App
+            if (window.Telegram && Telegram.WebApp) {
+                const tg = Telegram.WebApp;
+                
+                // Инициализируем WebApp
+                tg.ready();
+                
+                // Раскрываем на весь экран
+                tg.expand();
+                
+                // Получаем данные пользователя
+                const user = tg.initDataUnsafe.user;
+                
+                if (user && user.id) {
+                    // Показываем ID
+                    document.getElementById('user-id').textContent = user.id;
+                    
+                    // Собираем дополнительную информацию
+                    let infoHtml = '<div class="info-box">';
+                    infoHtml += '<h3>📋 Информация:</h3>';
+                    
+                    if (user.first_name) {
+                        infoHtml += `<p><strong>Имя:</strong> ${user.first_name}</p>`;
+                    }
+                    if (user.last_name) {
+                        infoHtml += `<p><strong>Фамилия:</strong> ${user.last_name}</p>`;
+                    }
+                    if (user.username) {
+                        infoHtml += `<p><strong>Username:</strong> @${user.username}</p>`;
+                    }
+                    if (user.language_code) {
+                        infoHtml += `<p><strong>Язык:</strong> ${user.language_code}</p>`;
+                    }
+                    
+                    infoHtml += '</div>';
+                    document.getElementById('user-info').innerHTML = infoHtml;
+                    
+                    // Добавляем кнопку копирования
+                    const copyBtn = document.createElement('button');
+                    copyBtn.textContent = '📋 Скопировать ID';
+                    copyBtn.onclick = function() {
+                        navigator.clipboard.writeText(user.id.toString())
+                            .then(() => {
+                                copyBtn.textContent = '✅ Скопировано!';
+                                setTimeout(() => {
+                                    copyBtn.textContent = '📋 Скопировать ID';
+                                }, 2000);
+                            })
+                            .catch(err => {
+                                console.error('Ошибка копирования:', err);
+                                copyBtn.textContent = '❌ Ошибка';
+                            });
+                    };
+                    document.querySelector('.container').appendChild(copyBtn);
+                    
+                } else {
+                    document.getElementById('user-id').textContent = '❌ Данные не получены';
+                    document.getElementById('error').textContent = 
+                        'Откройте через Telegram бота (кнопка Menu или команда /start)';
+                    document.getElementById('error').style.display = 'block';
+                }
+                
+            } else {
+                // Не в Telegram Web App
+                document.getElementById('user-id').textContent = '❌';
+                document.getElementById('error').textContent = 
+                    'Этот сайт работает только внутри Telegram! Откройте его через Telegram бота.';
+                document.getElementById('error').style.display = 'block';
+            }
+        });
     </script>
-    
-    <!-- SDK Telegram -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </body>
 </html>
