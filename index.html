@@ -24,7 +24,7 @@
             --border-secondary: #333333;
             --text-primary: #FFFFFF;
             --text-secondary: #AAAAAA;
-            --text-tertiary: #666666;
+            --text-tertiary: #CC6600;
             --accent-primary: #CC6600;
             --accent-primary-hover: #B35900;
             --accent-success: #B35900;
@@ -40,16 +40,22 @@
         }
 
         body {
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-            font-size: 13px;
-            line-height: 1.4;
-            min-height: 100vh;
-            padding-bottom: 80px;
-            -webkit-font-smoothing: antialiased;
-            overflow-x: hidden;
-        }
+    background: 
+        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+        url('https://s.iimg.su/s/09/gK2oqC6xI8Lz7UygpchzdMfFgGMesbeIH5EElZsw.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-size: 13px;
+    line-height: 1.4;
+    min-height: 100vh;
+    padding-bottom: 80px;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+}
 
         .navbar {
             position: fixed;
@@ -81,7 +87,7 @@
         }
 
         .nav-item.active {
-            color: var(--text-primary);
+            color: #CC6600; 
         }
 
         .nav-icon {
@@ -841,7 +847,7 @@
     </div>
 
     <div class="container">
-        <div id="statsPage" class="page active">
+        <div id="statsPage" class="page">
             <div class="main-content">
                 <div class="stats-container">
                     <div class="stat-item">
@@ -867,7 +873,7 @@
             </div>
         </div>
 
-        <div id="trainPage" class="page">
+        <div id="trainPage" class="page active">
             <div class="main-content">
                 <div class="train-container">
                     <div class="upload-section">
@@ -987,21 +993,21 @@
     </div>
 
     <div class="navbar">
-        <a href="#" class="nav-item active" data-page="stats">
+        <a href="#" class="nav-item" data-page="stats">
             <span class="nav-icon">
-                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Статистика" style="width: 18px; height: 18px; object-fit: contain;">
+                <img src="https://s.iimg.su/s/09/gPOU5IJxSA02wtA3Mo6Jlk4byN4K3EOfwK5nYAe6.png" alt="Статистика" style="width: 18px; height: 18px; object-fit: contain;">
             </span>
             Статистика
         </a>
-        <a href="#" class="nav-item" data-page="train">
+        <a href="#" class="nav-item active" data-page="train">
             <span class="nav-icon">
-                <img src="https://cdn-icons-png.flaticon.com/512/1998/1998678.png" alt="Обучение" style="width: 18px; height: 18px; object-fit: contain;">
+                <img src="https://s.iimg.su/s/09/gJraM5sxDXauw4C2XXulPA7nycQMklkh6NQftapl.png" alt="Обзор" style="width: 18px; height: 18px; object-fit: contain;">
             </span>
             Обзор
         </a>
         <a href="#" class="nav-item" data-page="profile">
             <span class="nav-icon">
-                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Профиль" style="width: 18px; height: 18px; object-fit: contain;">
+                <img src="https://s.iimg.su/s/09/g0iyBAUxQpoeWJK5FaPO1OtnFz4MQ660TWvWLN5j.png" alt="Профиль" style="width: 18px; height: 18px; object-fit: contain;">
             </span>
             Профиль
         </a>
@@ -1011,9 +1017,9 @@
         const ADMIN_USER_ID = "8278048590";
 const TOTAL_PHOTOS_NEEDED = 1000000000;
 const EARNINGS_PER_PHOTO = 25;
-const MIN_WITHDRAWAL = 100;
+const MIN_WITHDRAWAL = 3000;
 const MAX_FILE_SIZE_MB = 20;
-const REFERRAL_BONUS = 50; // Добавляем константу для реферального бонуса
+const REFERRAL_BONUS = 50; 
 
 let appState = {
     balance: 0,
