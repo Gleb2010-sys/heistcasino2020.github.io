@@ -1009,7 +1009,7 @@
     </div>
 
     <script>
-        const ADMIN_USER_ID = "8278048590";
+                const ADMIN_USER_ID = "8278048590";
         const TOTAL_PHOTOS_NEEDED = 1000000000;
         const EARNINGS_PER_PHOTO = 25;
         const MIN_WITHDRAWAL = 100;
@@ -1042,17 +1042,20 @@
         let lastDrawerTime = 0;
 
         document.addEventListener('DOMContentLoaded', function() {
-            initApp();
-            loadFromStorage();
-            checkAdminStatus();
-            updateUI();
-            initDrawerSwipe();
-            
-            document.getElementById('checkIcon').classList.add('hidden');
-            document.getElementById('crossIcon').classList.add('hidden');
-            
-            // Инициализируем Telegram WebApp и получаем ID
+            // Сначала инициализируем Telegram WebApp и получаем ID
             initTelegram();
+            
+            // После получения ID загружаем данные и инициализируем приложение
+            setTimeout(() => {
+                initApp();
+                loadFromStorage();
+                checkAdminStatus();
+                updateUI();
+                initDrawerSwipe();
+                
+                document.getElementById('checkIcon').classList.add('hidden');
+                document.getElementById('crossIcon').classList.add('hidden');
+            }, 100);
         });
 
         function initApp() {
@@ -1103,8 +1106,8 @@
                     // Сохраняем Telegram ID
                     appState.userId = user.id.toString();
                     
-                    // Обновляем интерфейс с новым ID
-                    updateUI();
+                    // Обновляем интерфейс сразу
+                    document.getElementById('userIdDisplay').textContent = appState.userId;
                     
                     // Сохраняем в localStorage
                     saveToStorage();
@@ -1152,7 +1155,7 @@
             }
         }
 
-                function initDrawerSwipe() {
+        function initDrawerSwipe() {
             const drawer = document.getElementById('withdrawDrawer');
             const overlay = document.getElementById('drawerOverlay');
             const swipeZone = document.getElementById('drawerSwipeZone');
@@ -1494,7 +1497,7 @@
             input.value = formatted;
         }
 
-                function processWithdrawal() {
+        function processWithdrawal() {
             const amount = parseInt(document.getElementById('withdrawAmount').value);
             const cardNumber = document.getElementById('cardNumber').value.replace(/\s+/g, '');
             const confirmed = document.getElementById('confirmCheck').checked;
@@ -1544,6 +1547,19 @@
             closeDrawer();
             
             showNotification(`Заявка на вывод ${amount}₽ принята. Ожидайте в течение 50 часов.`, 'success');
+        }
+
+        function copyRefLink() {
+            const link = appState.userId ? `https://t.me/NeuralTrainerBot/start?ref=${appState.userId}` : 'https://t.me/NeuralTrainerBot';
+            navigator.clipboard.writeText(link).then(() => {
+                showNotification('Ссылка скопирована', 'success');
+            });
+        }
+
+        function copyCardNumber(cardNumber) {
+            navigator.clipboard.writeText(cardNumber).then(() => {
+                showNotification('Номер карты скопирован', 'success');
+            });
         }
 
         function showWithdrawRequests() {
@@ -1627,7 +1643,6 @@
                     localStorage.setItem(`userWithdrawals_${request.userId}`, JSON.stringify(userWithdrawals));
                 }
                 
-                
                 showNotification(`Заявка ${request.id} отклонена`, 'success');
             }
             
@@ -1678,8 +1693,7 @@
                     appState.refBalance = data.refBalance || 0;
                     appState.refCount = data.refCount || 0;
                     
-                    // Сохраняем существующий Telegram ID если он есть в localStorage
-                    if (data.userId) {
+                    if (!appState.userId && data.userId) {
                         appState.userId = data.userId;
                     }
                     
