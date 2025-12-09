@@ -1015,800 +1015,758 @@
 
     <script>
         const ADMIN_USER_ID = "8278048590";
-const TOTAL_PHOTOS_NEEDED = 1000000000;
-const EARNINGS_PER_PHOTO = 25;
-const MIN_WITHDRAWAL = 3000;
-const MAX_FILE_SIZE_MB = 20;
-const REFERRAL_BONUS = 50; 
+        const TOTAL_PHOTOS_NEEDED = 1000000000;
+        const EARNINGS_PER_PHOTO = 25;
+        const MIN_WITHDRAWAL = 3000;
+        const MAX_FILE_SIZE_MB = 20;
+        const REFERRAL_BONUS = 50; 
 
-let appState = {
-    balance: 0,
-    todayEarnings: 0,
-    photosSent: 0,
-    totalImages: 0,
-    refBalance: 0,
-    refCount: 0,
-    userId: '',
-    status: 'usual',
-    uploadedHashes: new Set(),
-    currentFile: null,
-    isAdmin: false,
-    modelTrained: false,
-    adminNavAdded: false,
-    withdrawnTotal: 0,
-    pendingWithdrawals: [],
-    totalWithdrawals: 0
-};
+        let appState = {
+            balance: 0,
+            todayEarnings: 0,
+            photosSent: 0,
+            totalImages: 0,
+            refBalance: 0,
+            refCount: 0,
+            userId: '',
+            status: 'usual',
+            uploadedHashes: new Set(),
+            currentFile: null,
+            isAdmin: false,
+            modelTrained: false,
+            adminNavAdded: false,
+            withdrawnTotal: 0,
+            pendingWithdrawals: [],
+            totalWithdrawals: 0
+        };
 
-let drawerStartY = 0;
-let drawerStartBottom = 0;
-let isDraggingDrawer = false;
-let drawerVelocity = 0;
-let lastDrawerY = 0;
-let lastDrawerTime = 0;
+        let drawerStartY = 0;
+        let drawerStartBottom = 0;
+        let isDraggingDrawer = false;
+        let drawerVelocity = 0;
+        let lastDrawerY = 0;
+        let lastDrawerTime = 0;
 
-document.addEventListener('DOMContentLoaded', function() {
-    initApp();
-    loadFromStorage();
-    checkAdminStatus();
-    updateUI();
-    initDrawerSwipe();
-    
-    document.getElementById('checkIcon').classList.add('hidden');
-    document.getElementById('crossIcon').classList.add('hidden');
-    
-    initTelegram();
-});
-
-function initApp() {
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.addEventListener('click', function(e) {
-            e.preventDefault();
-            const pageId = this.getAttribute('data-page');
-            switchPage(pageId);
-        });
-    });
-
-    const uploadArea = document.getElementById('uploadArea');
-    const fileInput = document.getElementById('fileInput');
-    const uploadBtn = document.getElementById('uploadBtn');
-
-    uploadArea.addEventListener('click', function() {
-        fileInput.click();
-    });
-    
-    fileInput.addEventListener('change', handleFileSelect);
-    uploadBtn.addEventListener('click', handleUpload);
-    document.getElementById('withdrawBtn').addEventListener('click', openWithdrawDrawer);
-    document.getElementById('confirmWithdrawBtn').addEventListener('click', processWithdrawal);
-    document.getElementById('drawerOverlay').addEventListener('click', closeDrawer);
-    document.getElementById('cardNumber').addEventListener('input', function(e) {
-        formatCardNumber(this);
-    });
-
-    document.getElementById('copyRefBtn').addEventListener('click', copyRefLink);
-    document.getElementById('processWithdrawalsBtn')?.addEventListener('click', showWithdrawRequests);
-}
-
-function initTelegram() {
-    if (window.Telegram && Telegram.WebApp) {
-        const tg = Telegram.WebApp;
-        tg.ready();
-        tg.expand();
-        const user = tg.initDataUnsafe.user;
-        
-        if (user && user.id) {
-            appState.userId = user.id.toString();
+        document.addEventListener('DOMContentLoaded', function() {
+            initTelegram();
+            initApp();
+            loadUserData();
+            checkAdminStatus();
             updateUI();
-            saveToStorage();
-            const refParam = getRefParam();
-            if (refParam && refParam !== appState.userId) {
-                handleReferral(refParam);
+            initDrawerSwipe();
+            
+            document.getElementById('checkIcon').classList.add('hidden');
+            document.getElementById('crossIcon').classList.add('hidden');
+        });
+
+        function initApp() {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const pageId = this.getAttribute('data-page');
+                    switchPage(pageId);
+                });
+            });
+
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            const uploadBtn = document.getElementById('uploadBtn');
+
+            uploadArea.addEventListener('click', function() {
+                fileInput.click();
+            });
+            
+            fileInput.addEventListener('change', handleFileSelect);
+            uploadBtn.addEventListener('click', handleUpload);
+            document.getElementById('withdrawBtn').addEventListener('click', openWithdrawDrawer);
+            document.getElementById('confirmWithdrawBtn').addEventListener('click', processWithdrawal);
+            document.getElementById('drawerOverlay').addEventListener('click', closeDrawer);
+            document.getElementById('cardNumber').addEventListener('input', function(e) {
+                formatCardNumber(this);
+            });
+
+            document.getElementById('copyRefBtn').addEventListener('click', copyRefLink);
+            document.getElementById('processWithdrawalsBtn')?.addEventListener('click', showWithdrawRequests);
+        }
+
+        function initTelegram() {
+            if (window.Telegram && Telegram.WebApp) {
+                const tg = Telegram.WebApp;
+                tg.ready();
+                tg.expand();
+                const user = tg.initDataUnsafe.user;
+                
+                if (user && user.id) {
+                    appState.userId = user.id.toString();
+                    
+                    // Сохраняем пользователя в общую базу
+                    saveUserToGlobalDB();
+                    
+                    // Проверяем реферальную ссылку
+                    const refParam = getRefParam();
+                    if (refParam && refParam !== appState.userId) {
+                        handleReferral(refParam);
+                    }
+                    
+                    updateUI();
+                } else {
+                    document.getElementById('userIdDisplay').textContent = '❌ Данные не получены';
+                    document.getElementById('refLink').textContent = 'Откройте через Telegram бота';
+                }
+            } else {
+                appState.userId = 'demo_user_' + Date.now(); // Для демо
+                document.getElementById('userIdDisplay').textContent = 'DEMO MODE';
+                document.getElementById('refLink').textContent = 'Откройте через Telegram бота';
+                updateUI();
             }
-        } else {
-            document.getElementById('userIdDisplay').textContent = '❌ Данные не получены';
-            document.getElementById('refLink').textContent = 'Откройте через Telegram бота';
         }
-    } else {
-        document.getElementById('userIdDisplay').textContent = '❌';
-        document.getElementById('refLink').textContent = 'Откройте через Telegram бота';
-    }
-}
 
-function getRefParam() {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('ref') || urlParams.get('startParam') || null;
-}
-
-function handleReferral(referrerId) {
-    let referrals = JSON.parse(localStorage.getItem('referrals') || '{}');
-    
-    if (!referrals[appState.userId]) {
-        referrals[appState.userId] = {
-            referrer: referrerId,
-            timestamp: new Date().toISOString(),
-            bonusApplied: false
-        };
-        
-        localStorage.setItem('referrals', JSON.stringify(referrals));
-        
-        // Начисляем бонус рефереру
-        applyReferralBonus(referrerId);
-        
-        showNotification('Вы зарегистрировались по реферальной ссылке!', 'success');
-    }
-}
-
-// НОВАЯ ФУНКЦИЯ: Начисление реферального бонуса
-function applyReferralBonus(referrerId) {
-    // Получаем данные всех пользователей
-    let usersData = JSON.parse(localStorage.getItem('usersData') || '{}');
-    
-    // Если пользователя нет в базе, создаём запись
-    if (!usersData[referrerId]) {
-        usersData[referrerId] = {
-            balance: 0,
-            refCount: 0,
-            refBalance: 0,
-            referrals: [],
-            totalEarned: 0,
-            photosSent: 0,
-            todayEarnings: 0,
-            withdrawnTotal: 0
-        };
-    }
-    
-    // Начисляем бонус
-    let bonusAmount = (referrerId === ADMIN_USER_ID) ? 100 : REFERRAL_BONUS;
-    usersData[referrerId].balance += bonusAmount;
-    usersData[referrerId].refBalance += bonusAmount;
-    usersData[referrerId].refCount += 1;
-    
-    // Добавляем реферала в список
-    usersData[referrerId].referrals.push({
-        userId: appState.userId,
-        timestamp: new Date().toISOString(),
-        bonus: bonusAmount
-    });
-    
-    // Сохраняем обновлённые данные
-    localStorage.setItem('usersData', JSON.stringify(usersData));
-    
-    // Если текущий пользователь - это реферер, обновляем его UI
-    if (appState.userId === referrerId) {
-        appState.balance += bonusAmount;
-        appState.refBalance += bonusAmount;
-        appState.refCount += 1;
-        updateUI();
-    }
-}
-
-function initDrawerSwipe() {
-    const drawer = document.getElementById('withdrawDrawer');
-    const overlay = document.getElementById('drawerOverlay');
-    const swipeZone = document.getElementById('drawerSwipeZone');
-    
-    swipeZone.addEventListener('mousedown', startDrag);
-    document.addEventListener('mousemove', doDrag);
-    document.addEventListener('mouseup', stopDrag);
-    
-    swipeZone.addEventListener('touchstart', startDragTouch, {passive: false});
-    document.addEventListener('touchmove', doDragTouch, {passive: false});
-    document.addEventListener('touchend', stopDrag);
-    
-    overlay.addEventListener('click', function(e) {
-        if (e.target === overlay) {
-            closeDrawer();
+        function getRefParam() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('ref') || urlParams.get('startParam') || null;
         }
-    });
-}
 
-function startDrag(e) {
-    if (!e.target.closest('.drawer-swipe-zone')) return;
-    
-    e.preventDefault();
-    isDraggingDrawer = true;
-    drawerStartY = e.clientY;
-    drawerStartBottom = parseInt(getComputedStyle(document.getElementById('withdrawDrawer')).bottom);
-    lastDrawerY = e.clientY;
-    lastDrawerTime = Date.now();
-    document.body.style.overflow = 'hidden';
-}
-
-function startDragTouch(e) {
-    if (!e.target.closest('.drawer-swipe-zone')) return;
-    
-    e.preventDefault();
-    isDraggingDrawer = true;
-    drawerStartY = e.touches[0].clientY;
-    drawerStartBottom = parseInt(getComputedStyle(document.getElementById('withdrawDrawer')).bottom);
-    lastDrawerY = e.touches[0].clientY;
-    lastDrawerTime = Date.now();
-    document.body.style.overflow = 'hidden';
-}
-
-function doDrag(e) {
-    if (!isDraggingDrawer) return;
-    e.preventDefault();
-    
-    const currentY = e.clientY;
-    const deltaY = drawerStartY - currentY;
-    const drawer = document.getElementById('withdrawDrawer');
-    const newBottom = Math.min(Math.max(drawerStartBottom + deltaY, -600), 0);
-    
-    drawer.style.bottom = newBottom + 'px';
-    drawer.style.transition = 'none'; 
-    
-    const currentTime = Date.now();
-    const deltaTime = currentTime - lastDrawerTime;
-    if (deltaTime > 0) {
-        drawerVelocity = (currentY - lastDrawerY) / deltaTime;
-    }
-    lastDrawerY = currentY;
-    lastDrawerTime = currentTime;
-}
-
-function doDragTouch(e) {
-    if (!isDraggingDrawer) return;
-    e.preventDefault();
-    
-    const currentY = e.touches[0].clientY;
-    const deltaY = drawerStartY - currentY;
-    const drawer = document.getElementById('withdrawDrawer');
-    const newBottom = Math.min(Math.max(drawerStartBottom + deltaY, -600), 0);
-    
-    drawer.style.bottom = newBottom + 'px';
-    drawer.style.transition = 'none'; 
-    
-    const currentTime = Date.now();
-    const deltaTime = currentTime - lastDrawerTime;
-    if (deltaTime > 0) {
-        drawerVelocity = (currentY - lastDrawerY) / deltaTime;
-    }
-    lastDrawerY = currentY;
-    lastDrawerTime = currentTime;
-}
-
-function stopDrag() {
-    if (!isDraggingDrawer) return;
-    
-    isDraggingDrawer = false;
-    const drawer = document.getElementById('withdrawDrawer');
-    
-    drawer.style.transition = 'bottom 0.3s ease';
-    
-    const currentBottom = parseInt(drawer.style.bottom) || 0;
-    
-    if (drawerVelocity > 0.5 || currentBottom < -150) {
-        closeDrawer();
-    } else {
-        drawer.style.bottom = '0px';
-    }
-    
-    drawerVelocity = 0;
-    document.body.style.overflow = '';
-}
-
-function checkAdminStatus() {
-    appState.isAdmin = (appState.userId === ADMIN_USER_ID);
-    
-    if (appState.isAdmin && !appState.adminNavAdded) {
-        addAdminNavigation();
-        appState.adminNavAdded = true;
-    }
-}
-
-function addAdminNavigation() {
-    const navbar = document.querySelector('.navbar');
-    const adminNav = document.createElement('a');
-    adminNav.href = '#';
-    adminNav.className = 'nav-item';
-    adminNav.setAttribute('data-page', 'admin');
-    adminNav.innerHTML = '<span class="nav-icon"><img src="https://cdn-icons-png.flaticon.com/512/1828/1828490.png" alt="Админ" style="width: 18px; height: 18px; object-fit: contain;"></span>Админ';
-    navbar.appendChild(adminNav);
-    
-    adminNav.addEventListener('click', function(e) {
-        e.preventDefault();
-        switchPage('admin');
-    });
-}
-
-function switchPage(pageId) {
-    if (pageId === 'admin' && !appState.isAdmin) {
-        showNotification('Доступ запрещён', 'error');
-        return;
-    }
-    
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.remove('active');
-        if (item.getAttribute('data-page') === pageId) {
-            item.classList.add('active');
+        function handleReferral(referrerId) {
+            let referrals = JSON.parse(localStorage.getItem('referrals') || '{}');
+            
+            if (!referrals[appState.userId]) {
+                referrals[appState.userId] = {
+                    referrer: referrerId,
+                    timestamp: new Date().toISOString(),
+                    bonusApplied: false
+                };
+                
+                localStorage.setItem('referrals', JSON.stringify(referrals));
+                
+                // Начисляем бонус рефереру
+                applyReferralBonus(referrerId);
+                
+                showNotification('Вы зарегистрировались по реферальной ссылке!', 'success');
+            }
         }
-    });
 
-    document.querySelectorAll('.page').forEach(page => {
-        page.classList.remove('active');
-    });
-    document.getElementById(pageId + 'Page').classList.add('active');
-
-    updateUI();
-}
-
-// ОБНОВЛЁННАЯ ФУНКЦИЯ updateUI
-function updateUI() {
-    // Загружаем актуальные данные пользователя из общей базы
-    loadUserData();
-    
-    document.getElementById('balanceStat').textContent = `${appState.balance} ₽`;
-    document.getElementById('todayEarnings').textContent = `${appState.todayEarnings} ₽`;
-    document.getElementById('photosSent').textContent = appState.photosSent;
-    document.getElementById('withdrawnTotal').textContent = `${appState.withdrawnTotal} ₽`;
-    
-    document.getElementById('userIdDisplay').textContent = appState.userId || 'Загрузка...';
-    document.getElementById('balanceValue').textContent = `${appState.balance} ₽`;
-    
-    const refLink = appState.userId ? `https://t.me/NeuralTrainerBot/start?ref=${appState.userId}` : 'Загрузка...';
-    document.getElementById('refLink').textContent = refLink;
-    
-    document.getElementById('refCount').textContent = appState.refCount;
-    document.getElementById('refBalance').textContent = `${appState.refBalance} ₽`;
-    
-    updateUserStatus();
-    
-    if (appState.isAdmin) {
-        updateAdminPanel();
-    }
-}
-
-// НОВАЯ ФУНКЦИЯ: Загрузка данных пользователя из общей базы
-function loadUserData() {
-    if (!appState.userId) return;
-    
-    // Загружаем данные пользователя из общей базы
-    let usersData = JSON.parse(localStorage.getItem('usersData') || '{}');
-    
-    if (usersData[appState.userId]) {
-        const userData = usersData[appState.userId];
-        
-        // Обновляем данные из общей базы
-        appState.balance = userData.balance || 0;
-        appState.refBalance = userData.refBalance || 0;
-        appState.refCount = userData.refCount || 0;
-        appState.photosSent = userData.photosSent || 0;
-        appState.withdrawnTotal = userData.withdrawnTotal || 0;
-    }
-    
-    // Загружаем личную статистику (сегодняшний заработок и хэши фото)
-    loadFromStorage();
-}
-
-function updateUserStatus() {
-    const statusElement = document.getElementById('statusValue');
-    
-    if (appState.balance >= 15000) {
-        appState.status = 'vip';
-        statusElement.className = 'status-value vip';
-        statusElement.textContent = 'VIP';
-    } else if (appState.balance >= 5000) {
-        appState.status = 'pro';
-        statusElement.className = 'status-value pro';
-        statusElement.textContent = 'Professional';
-    } else {
-        appState.status = 'usual';
-        statusElement.className = 'status-value';
-        statusElement.textContent = 'Usual';
-    }
-}
-
-function updateAdminPanel() {
-    const progressPercent = (appState.totalImages / TOTAL_PHOTOS_NEEDED * 100).toFixed(8);
-    const progressValue = Math.min(100, parseFloat(progressPercent));
-    
-    document.getElementById('progressPercent').textContent = `${progressPercent}%`;
-    document.getElementById('progressFill').style.width = `${progressValue}%`;
-    document.getElementById('totalImages').textContent = appState.totalImages.toLocaleString();
-    
-    // Подсчитываем общее количество пользователей
-    let usersData = JSON.parse(localStorage.getItem('usersData') || '{}');
-    let totalUsers = Object.keys(usersData).length;
-    if (totalUsers === 0) totalUsers = 1;
-    document.getElementById('totalUsers').textContent = totalUsers;
-    
-    let allWithdrawals = JSON.parse(localStorage.getItem('allWithdrawals') || '[]');
-    let pendingRequests = allWithdrawals.filter(req => !req.processed);
-    document.getElementById('pendingWithdrawals').textContent = pendingRequests.length;
-    document.getElementById('totalWithdrawals').textContent = appState.totalWithdrawals;
-}
-
-function handleFileSelect(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-        showNotification(`Файл слишком большой (макс. ${MAX_FILE_SIZE_MB}МБ)`, 'error');
-        resetFileInput();
-        return;
-    }
-
-    if (!file.type.startsWith('image/')) {
-        showNotification('Выберите изображение', 'error');
-        resetFileInput();
-        return;
-    }
-
-    appState.currentFile = file;
-    
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const preview = document.getElementById('uploadPreview');
-        preview.src = e.target.result;
-        preview.classList.remove('hidden');
-        document.getElementById('plusIcon').classList.add('hidden');
-        
-        document.getElementById('checkIcon').classList.remove('hidden');
-        document.getElementById('crossIcon').classList.add('hidden');
-        document.getElementById('uploadInfo').textContent = 'Фото выбрано';
-        document.getElementById('uploadInfo').className = 'upload-info text-success';
-    };
-    reader.readAsDataURL(file);
-}
-
-function showStatusIcon(type, message) {
-    const checkIcon = document.getElementById('checkIcon');
-    const crossIcon = document.getElementById('crossIcon');
-    const uploadInfo = document.getElementById('uploadInfo');
-    
-    if (type === 'check') {
-        checkIcon.classList.remove('hidden');
-        crossIcon.classList.add('hidden');
-        uploadInfo.textContent = message;
-        uploadInfo.className = 'upload-info text-success';
-    } else if (type === 'cross') {
-        checkIcon.classList.add('hidden');
-        crossIcon.classList.remove('hidden');
-        uploadInfo.textContent = message;
-        uploadInfo.className = 'upload-info text-danger';
-    } else {
-        checkIcon.classList.add('hidden');
-        crossIcon.classList.add('hidden');
-        uploadInfo.textContent = message || 'Выберите фотографию';
-        uploadInfo.className = 'upload-info';
-    }
-}
-
-function resetFileInput() {
-    document.getElementById('fileInput').value = '';
-    document.getElementById('uploadPreview').classList.add('hidden');
-    document.getElementById('uploadPreview').src = '';
-    document.getElementById('plusIcon').classList.remove('hidden');
-    appState.currentFile = null;
-    showStatusIcon('none', 'Выберите фотографию');
-}
-
-async function handleUpload() {
-    if (!appState.currentFile) {
-        showNotification('Сначала выберите фото', 'error');
-        return;
-    }
-
-    const file = appState.currentFile;
-    
-    const fileHash = await generateFileHash(file);
-    
-    if (appState.uploadedHashes.has(fileHash)) {
-        showStatusIcon('cross', 'Это фото уже было загружено');
-        showNotification('Это фото уже было загруженно', 'error');
-        return;
-    }
-
-    showStatusIcon('none', 'Отправка...');
-    
-    setTimeout(() => {
-        appState.balance += EARNINGS_PER_PHOTO;
-        appState.todayEarnings += EARNINGS_PER_PHOTO;
-        appState.photosSent += 1;
-        appState.totalImages += 1;
-        appState.uploadedHashes.add(fileHash);
-        
-        // Сохраняем в общую базу пользователей
-        saveUserToGlobalDB();
-        
-        resetFileInput();
-        
-        saveToStorage();
-        updateUI();
-        
-        showNotification(`Фото отправлено! +${EARNINGS_PER_PHOTO}₽`, 'success');
-        
-    }, 800);
-}
-
-// НОВАЯ ФУНКЦИЯ: Сохранение данных пользователя в общую базу
-function saveUserToGlobalDB() {
-    if (!appState.userId) return;
-    
-    let usersData = JSON.parse(localStorage.getItem('usersData') || '{}');
-    
-    if (!usersData[appState.userId]) {
-        usersData[appState.userId] = {
-            balance: 0,
-            refCount: 0,
-            refBalance: 0,
-            referrals: [],
-            totalEarned: 0,
-            photosSent: 0,
-            todayEarnings: 0,
-            withdrawnTotal: 0
-        };
-    }
-    
-    // Обновляем баланс и статистику
-    usersData[appState.userId].balance = appState.balance;
-    usersData[appState.userId].photosSent = appState.photosSent;
-    usersData[appState.userId].refCount = appState.refCount;
-    usersData[appState.userId].refBalance = appState.refBalance;
-    usersData[appState.userId].todayEarnings = appState.todayEarnings;
-    usersData[appState.userId].withdrawnTotal = appState.withdrawnTotal;
-    
-    localStorage.setItem('usersData', JSON.stringify(usersData));
-}
-
-async function generateFileHash(file) {
-    return `${file.name}_${file.size}_${file.lastModified}`;
-}
-
-function openWithdrawDrawer() {
-    document.getElementById('withdrawDrawer').classList.add('active');
-    document.getElementById('drawerOverlay').classList.add('active');
-    document.body.style.overflow = 'hidden';
-}
-
-function closeDrawer() {
-    document.getElementById('withdrawDrawer').classList.remove('active');
-    document.getElementById('drawerOverlay').classList.remove('active');
-    document.getElementById('withdrawDrawer').style.bottom = '';
-    document.body.style.overflow = '';
-    
-    document.getElementById('cardNumber').value = '';
-    document.getElementById('withdrawAmount').value = '';
-    document.getElementById('confirmCheck').checked = false;
-}
-
-function formatCardNumber(input) {
-    let value = input.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-    let formatted = '';
-    for (let i = 0; i < value.length; i++) {
-        if (i > 0 && i % 4 === 0) formatted += ' ';
-        formatted += value[i];
-    }
-    input.value = formatted;
-}
-
-function processWithdrawal() {
-    const amount = parseInt(document.getElementById('withdrawAmount').value);
-    const cardNumber = document.getElementById('cardNumber').value.replace(/\s+/g, '');
-    const confirmed = document.getElementById('confirmCheck').checked;
-    
-    if (!confirmed) {
-        showNotification('Подтвердите корректность данных', 'error');
-        return;
-    }
-    
-    if (cardNumber.length !== 16 || !/^\d{16}$/.test(cardNumber)) {
-        showNotification('Введите корректный номер карты', 'error');
-        return;
-    }
-    
-    if (isNaN(amount) || amount < MIN_WITHDRAWAL) {
-        showNotification(`Минимальная сумма вывода: ${MIN_WITHDRAWAL}₽`, 'error');
-        return;
-    }
-    
-    if (amount > appState.balance) {
-        showNotification('Недостаточно средств на балансе', 'error');
-        return;
-    }
-    
-    const withdrawalRequest = {
-        id: Date.now(),
-        userId: appState.userId,
-        amount: amount,
-        cardNumber: cardNumber,
-        timestamp: new Date().toISOString(),
-        processed: false
-    };
-
-    let allWithdrawals = JSON.parse(localStorage.getItem('allWithdrawals') || '[]');
-    allWithdrawals.push(withdrawalRequest);
-    localStorage.setItem('allWithdrawals', JSON.stringify(allWithdrawals));
-
-    let userWithdrawals = JSON.parse(localStorage.getItem(`userWithdrawals_${appState.userId}`) || '[]');
-    userWithdrawals.push(withdrawalRequest);
-    localStorage.setItem(`userWithdrawals_${appState.userId}`, JSON.stringify(userWithdrawals));
-    
-    appState.withdrawnTotal += amount;
-    appState.balance -= amount;
-    
-    // Сохраняем изменения в общей базе
-    saveUserToGlobalDB();
-    saveToStorage();
-    updateUI();
-    
-    closeDrawer();
-    
-    showNotification(`Заявка на вывод ${amount}₽ принята. Ожидайте в течение 50 часов.`, 'success');
-}
-
-function showWithdrawRequests() {
-    const requestsList = document.getElementById('withdrawRequestsList');
-    requestsList.classList.remove('hidden');
-    
-    let allWithdrawals = JSON.parse(localStorage.getItem('allWithdrawals') || '[]');
-    let pendingRequests = allWithdrawals.filter(req => !req.processed);
-    
-    if (pendingRequests.length === 0) {
-        requestsList.innerHTML = '<div style="text-align: center; color: var(--text-secondary); font-size: 11px; padding: 20px;">Нет заявок на вывод</div>';
-        return;
-    }
-    
-    let html = '<div class="withdraw-requests-title">Заявки на вывод</div>';
-    
-    pendingRequests.forEach(request => {
-        const formattedCard = request.cardNumber.replace(/(\d{4})(?=\d)/g, '$1 ');
-        
-        html += `
-            <div class="withdraw-request-item" data-id="${request.id}">
-                <div class="withdraw-request-info">
-                    ID: ${request.userId}<br>
-                    Сумма: ${request.amount}₽<br>
-                    Карта: ${formattedCard}
-                    <button class="card-copy-btn" onclick="copyCardNumber('${request.cardNumber}')">Копировать номер</button><br>
-                    Время: ${new Date(request.timestamp).toLocaleString()}
-                </div>
-                <div class="withdraw-request-actions">
-                    <button class="withdraw-action-btn approve" onclick="processAdminWithdrawal('${request.id}', 'approve')">Оплатить</button>
-                    <button class="withdraw-action-btn reject" onclick="processAdminWithdrawal('${request.id}', 'reject')">Отказать</button>
-                </div>
-            </div>
-        `;
-    });
-    
-    requestsList.innerHTML = html;
-}
-
-function processAdminWithdrawal(requestId, action) {
-    requestId = parseInt(requestId);
-    let allWithdrawals = JSON.parse(localStorage.getItem('allWithdrawals') || '[]');
-    const requestIndex = allWithdrawals.findIndex(req => req.id === requestId);
-    
-    if (requestIndex === -1) {
-        showNotification('Заявка не найдена', 'error');
-        return;
-    }
-    
-    const request = allWithdrawals[requestIndex];
-    
-    if (action === 'approve') {
-        allWithdrawals[requestIndex].processed = true;
-        allWithdrawals[requestIndex].status = 'approved';
-        allWithdrawals[requestIndex].processedAt = new Date().toISOString();
-        
-        let userWithdrawals = JSON.parse(localStorage.getItem(`userWithdrawals_${request.userId}`) || '[]');
-        const userRequestIndex = userWithdrawals.findIndex(req => req.id === requestId);
-        if (userRequestIndex !== -1) {
-            userWithdrawals[userRequestIndex].processed = true;
-            userWithdrawals[userRequestIndex].status = 'approved';
-            userWithdrawals[userRequestIndex].processedAt = new Date().toISOString();
-            localStorage.setItem(`userWithdrawals_${request.userId}`, JSON.stringify(userWithdrawals));
+        function applyReferralBonus(referrerId) {
+            // Получаем данные всех пользователей
+            let usersData = JSON.parse(localStorage.getItem('usersData') || '{}');
+            
+            // Загружаем данные реферера
+            if (usersData[referrerId]) {
+                const referrerData = usersData[referrerId];
+                let bonusAmount = (referrerId === ADMIN_USER_ID) ? 100 : REFERRAL_BONUS;
+                
+                referrerData.balance += bonusAmount;
+                referrerData.refBalance += bonusAmount;
+                referrerData.refCount += 1;
+                
+                // Добавляем реферала в список
+                if (!referrerData.referrals) referrerData.referrals = [];
+                referrerData.referrals.push({
+                    userId: appState.userId,
+                    timestamp: new Date().toISOString(),
+                    bonus: bonusAmount
+                });
+                
+                // Сохраняем обновлённые данные
+                usersData[referrerId] = referrerData;
+                localStorage.setItem('usersData', JSON.stringify(usersData));
+                
+                // Если текущий пользователь - это реферер, обновляем его UI
+                if (appState.userId === referrerId) {
+                    appState.balance += bonusAmount;
+                    appState.refBalance += bonusAmount;
+                    appState.refCount += 1;
+                    updateUI();
+                    saveUserToGlobalDB();
+                }
+            }
         }
-        
-        appState.totalWithdrawals += 1;
-        
-        showNotification(`Выплата ${request.amount}₽ для пользователя ${request.userId} выполнена`, 'success');
-        
-    } else if (action === 'reject') {
-        allWithdrawals[requestIndex].processed = true;
-        allWithdrawals[requestIndex].status = 'rejected';
-        allWithdrawals[requestIndex].processedAt = new Date().toISOString();
-        
-        let userWithdrawals = JSON.parse(localStorage.getItem(`userWithdrawals_${request.userId}`) || '[]');
-        const userRequestIndex = userWithdrawals.findIndex(req => req.id === requestId);
-        if (userRequestIndex !== -1) {
-            userWithdrawals[userRequestIndex].processed = true;
-            userWithdrawals[userRequestIndex].status = 'rejected';
-            userWithdrawals[userRequestIndex].processedAt = new Date().toISOString();
-            localStorage.setItem(`userWithdrawals_${request.userId}`, JSON.stringify(userWithdrawals));
+
+        function initDrawerSwipe() {
+            const drawer = document.getElementById('withdrawDrawer');
+            const overlay = document.getElementById('drawerOverlay');
+            const swipeZone = document.getElementById('drawerSwipeZone');
+            
+            swipeZone.addEventListener('mousedown', startDrag);
+            document.addEventListener('mousemove', doDrag);
+            document.addEventListener('mouseup', stopDrag);
+            
+            swipeZone.addEventListener('touchstart', startDragTouch, {passive: false});
+            document.addEventListener('touchmove', doDragTouch, {passive: false});
+            document.addEventListener('touchend', stopDrag);
+            
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) {
+                    closeDrawer();
+                }
+            });
         }
-        
-        // Возвращаем средства пользователю
-        let usersData = JSON.parse(localStorage.getItem('usersData') || '{}');
-        if (usersData[request.userId]) {
-            usersData[request.userId].balance += request.amount;
+
+        function startDrag(e) {
+            if (!e.target.closest('.drawer-swipe-zone')) return;
+            
+            e.preventDefault();
+            isDraggingDrawer = true;
+            drawerStartY = e.clientY;
+            drawerStartBottom = parseInt(getComputedStyle(document.getElementById('withdrawDrawer')).bottom);
+            lastDrawerY = e.clientY;
+            lastDrawerTime = Date.now();
+            document.body.style.overflow = 'hidden';
+        }
+
+        function startDragTouch(e) {
+            if (!e.target.closest('.drawer-swipe-zone')) return;
+            
+            e.preventDefault();
+            isDraggingDrawer = true;
+            drawerStartY = e.touches[0].clientY;
+            drawerStartBottom = parseInt(getComputedStyle(document.getElementById('withdrawDrawer')).bottom);
+            lastDrawerY = e.touches[0].clientY;
+            lastDrawerTime = Date.now();
+            document.body.style.overflow = 'hidden';
+        }
+
+        function doDrag(e) {
+            if (!isDraggingDrawer) return;
+            e.preventDefault();
+            
+            const currentY = e.clientY;
+            const deltaY = drawerStartY - currentY;
+            const drawer = document.getElementById('withdrawDrawer');
+            const newBottom = Math.min(Math.max(drawerStartBottom + deltaY, -600), 0);
+            
+            drawer.style.bottom = newBottom + 'px';
+            drawer.style.transition = 'none'; 
+            
+            const currentTime = Date.now();
+            const deltaTime = currentTime - lastDrawerTime;
+            if (deltaTime > 0) {
+                drawerVelocity = (currentY - lastDrawerY) / deltaTime;
+            }
+            lastDrawerY = currentY;
+            lastDrawerTime = currentTime;
+        }
+
+        function doDragTouch(e) {
+            if (!isDraggingDrawer) return;
+            e.preventDefault();
+            
+            const currentY = e.touches[0].clientY;
+            const deltaY = drawerStartY - currentY;
+            const drawer = document.getElementById('withdrawDrawer');
+            const newBottom = Math.min(Math.max(drawerStartBottom + deltaY, -600), 0);
+            
+            drawer.style.bottom = newBottom + 'px';
+            drawer.style.transition = 'none'; 
+            
+            const currentTime = Date.now();
+            const deltaTime = currentTime - lastDrawerTime;
+            if (deltaTime > 0) {
+                drawerVelocity = (currentY - lastDrawerY) / deltaTime;
+            }
+            lastDrawerY = currentY;
+            lastDrawerTime = currentTime;
+        }
+
+        function stopDrag() {
+            if (!isDraggingDrawer) return;
+            
+            isDraggingDrawer = false;
+            const drawer = document.getElementById('withdrawDrawer');
+            
+            drawer.style.transition = 'bottom 0.3s ease';
+            
+            const currentBottom = parseInt(drawer.style.bottom) || 0;
+            
+            if (drawerVelocity > 0.5 || currentBottom < -150) {
+                closeDrawer();
+            } else {
+                drawer.style.bottom = '0px';
+            }
+            
+            drawerVelocity = 0;
+            document.body.style.overflow = '';
+        }
+
+        function checkAdminStatus() {
+            appState.isAdmin = (appState.userId === ADMIN_USER_ID);
+            
+            if (appState.isAdmin && !appState.adminNavAdded) {
+                addAdminNavigation();
+                appState.adminNavAdded = true;
+            }
+        }
+
+        function addAdminNavigation() {
+            const navbar = document.querySelector('.navbar');
+            const adminNav = document.createElement('a');
+            adminNav.href = '#';
+            adminNav.className = 'nav-item';
+            adminNav.setAttribute('data-page', 'admin');
+            adminNav.innerHTML = '<span class="nav-icon"><img src="https://cdn-icons-png.flaticon.com/512/1828/1828490.png" alt="Админ" style="width: 18px; height: 18px; object-fit: contain;"></span>Админ';
+            navbar.appendChild(adminNav);
+            
+            adminNav.addEventListener('click', function(e) {
+                e.preventDefault();
+                switchPage('admin');
+            });
+        }
+
+        function switchPage(pageId) {
+            if (pageId === 'admin' && !appState.isAdmin) {
+                showNotification('Доступ запрещён', 'error');
+                return;
+            }
+            
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('data-page') === pageId) {
+                    item.classList.add('active');
+                }
+            });
+
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId + 'Page').classList.add('active');
+
+            updateUI();
+        }
+
+        function updateUI() {
+            loadUserData();
+            
+            document.getElementById('balanceStat').textContent = `${appState.balance} ₽`;
+            document.getElementById('todayEarnings').textContent = `${appState.todayEarnings} ₽`;
+            document.getElementById('photosSent').textContent = appState.photosSent;
+            document.getElementById('withdrawnTotal').textContent = `${appState.withdrawnTotal} ₽`;
+            
+            document.getElementById('userIdDisplay').textContent = appState.userId || 'Загрузка...';
+            document.getElementById('balanceValue').textContent = `${appState.balance} ₽`;
+            
+            const refLink = appState.userId ? `https://t.me/NeuralTrainerBot/start?ref=${appState.userId}` : 'Загрузка...';
+            document.getElementById('refLink').textContent = refLink;
+            
+            document.getElementById('refCount').textContent = appState.refCount;
+            document.getElementById('refBalance').textContent = `${appState.refBalance} ₽`;
+            
+            updateUserStatus();
+            
+            if (appState.isAdmin) {
+                updateAdminPanel();
+            }
+        }
+
+        function loadUserData() {
+            if (!appState.userId) return;
+            
+            let usersData = JSON.parse(localStorage.getItem('usersData') || '{}');
+            
+            if (usersData[appState.userId]) {
+                const userData = usersData[appState.userId];
+                
+                appState.balance = userData.balance || 0;
+                appState.refBalance = userData.refBalance || 0;
+                appState.refCount = userData.refCount || 0;
+                appState.photosSent = userData.photosSent || 0;
+                appState.todayEarnings = userData.todayEarnings || 0;
+                appState.withdrawnTotal = userData.withdrawnTotal || 0;
+                
+                // Загружаем хеши загруженных фото
+                if (userData.uploadedHashes) {
+                    appState.uploadedHashes = new Set(userData.uploadedHashes);
+                }
+            }
+        }
+
+        function updateUserStatus() {
+            const statusElement = document.getElementById('statusValue');
+            
+            if (appState.balance >= 15000) {
+                appState.status = 'vip';
+                statusElement.className = 'status-value vip';
+                statusElement.textContent = 'VIP';
+            } else if (appState.balance >= 5000) {
+                appState.status = 'pro';
+                statusElement.className = 'status-value pro';
+                statusElement.textContent = 'Professional';
+            } else {
+                appState.status = 'usual';
+                statusElement.className = 'status-value';
+                statusElement.textContent = 'Usual';
+            }
+        }
+
+        function updateAdminPanel() {
+            // Считаем общее количество загруженных фото всех пользователей
+            let usersData = JSON.parse(localStorage.getItem('usersData') || '{}');
+            let totalImages = 0;
+            
+            for (const userId in usersData) {
+                totalImages += usersData[userId].photosSent || 0;
+            }
+            
+            appState.totalImages = totalImages;
+            
+            const progressPercent = (appState.totalImages / TOTAL_PHOTOS_NEEDED * 100).toFixed(8);
+            const progressValue = Math.min(100, parseFloat(progressPercent));
+            
+            document.getElementById('progressPercent').textContent = `${progressPercent}%`;
+            document.getElementById('progressFill').style.width = `${progressValue}%`;
+            document.getElementById('totalImages').textContent = appState.totalImages.toLocaleString();
+
+            let totalUsers = Object.keys(usersData).length;
+            if (totalUsers === 0) totalUsers = 1;
+            document.getElementById('totalUsers').textContent = totalUsers;
+            
+            let allWithdrawals = JSON.parse(localStorage.getItem('allWithdrawals') || '[]');
+            let pendingRequests = allWithdrawals.filter(req => !req.processed);
+            document.getElementById('pendingWithdrawals').textContent = pendingRequests.length;
+            document.getElementById('totalWithdrawals').textContent = appState.totalWithdrawals;
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+                showNotification(`Файл слишком большой (макс. ${MAX_FILE_SIZE_MB}МБ)`, 'error');
+                resetFileInput();
+                return;
+            }
+
+            if (!file.type.startsWith('image/')) {
+                showNotification('Выберите изображение', 'error');
+                resetFileInput();
+                return;
+            }
+
+            appState.currentFile = file;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('uploadPreview');
+                preview.src = e.target.result;
+                preview.classList.remove('hidden');
+                document.getElementById('plusIcon').classList.add('hidden');
+                
+                document.getElementById('checkIcon').classList.remove('hidden');
+                document.getElementById('crossIcon').classList.add('hidden');
+                document.getElementById('uploadInfo').textContent = 'Фото выбрано';
+                document.getElementById('uploadInfo').className = 'upload-info text-success';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function showStatusIcon(type, message) {
+            const checkIcon = document.getElementById('checkIcon');
+            const crossIcon = document.getElementById('crossIcon');
+            const uploadInfo = document.getElementById('uploadInfo');
+            
+            if (type === 'check') {
+                checkIcon.classList.remove('hidden');
+                crossIcon.classList.add('hidden');
+                uploadInfo.textContent = message;
+                uploadInfo.className = 'upload-info text-success';
+            } else if (type === 'cross') {
+                checkIcon.classList.add('hidden');
+                crossIcon.classList.remove('hidden');
+                uploadInfo.textContent = message;
+                uploadInfo.className = 'upload-info text-danger';
+            } else {
+                checkIcon.classList.add('hidden');
+                crossIcon.classList.add('hidden');
+                uploadInfo.textContent = message || 'Выберите фотографию';
+                uploadInfo.className = 'upload-info';
+            }
+        }
+
+        function resetFileInput() {
+            document.getElementById('fileInput').value = '';
+            document.getElementById('uploadPreview').classList.add('hidden');
+            document.getElementById('uploadPreview').src = '';
+            document.getElementById('plusIcon').classList.remove('hidden');
+            appState.currentFile = null;
+            showStatusIcon('none', 'Выберите фотографию');
+        }
+
+        async function handleUpload() {
+            if (!appState.currentFile) {
+                showNotification('Сначала выберите фото', 'error');
+                return;
+            }
+
+            const file = appState.currentFile;
+            
+            const fileHash = await generateFileHash(file);
+            
+            if (appState.uploadedHashes.has(fileHash)) {
+                showStatusIcon('cross', 'Это фото уже было загружено');
+                showNotification('Это фото уже было загружено', 'error');
+                return;
+            }
+
+            showStatusIcon('none', 'Отправка...');
+            
+            setTimeout(() => {
+                appState.balance += EARNINGS_PER_PHOTO;
+                appState.todayEarnings += EARNINGS_PER_PHOTO;
+                appState.photosSent += 1;
+                appState.uploadedHashes.add(fileHash);
+                
+                // Сохраняем данные пользователя
+                saveUserToGlobalDB();
+                
+                resetFileInput();
+                
+                updateUI();
+                
+                showNotification(`Фото отправлено! +${EARNINGS_PER_PHOTO}₽`, 'success');
+                
+            }, 800);
+        }
+
+        function saveUserToGlobalDB() {
+            if (!appState.userId) return;
+            
+            let usersData = JSON.parse(localStorage.getItem('usersData') || '{}');
+            
+            if (!usersData[appState.userId]) {
+                usersData[appState.userId] = {
+                    balance: 0,
+                    refCount: 0,
+                    refBalance: 0,
+                    referrals: [],
+                    totalEarned: 0,
+                    photosSent: 0,
+                    todayEarnings: 0,
+                    withdrawnTotal: 0,
+                    uploadedHashes: [],
+                    createdAt: new Date().toISOString()
+                };
+            }
+            
+            usersData[appState.userId].balance = appState.balance;
+            usersData[appState.userId].photosSent = appState.photosSent;
+            usersData[appState.userId].refCount = appState.refCount;
+            usersData[appState.userId].refBalance = appState.refBalance;
+            usersData[appState.userId].todayEarnings = appState.todayEarnings;
+            usersData[appState.userId].withdrawnTotal = appState.withdrawnTotal;
+            usersData[appState.userId].uploadedHashes = Array.from(appState.uploadedHashes);
+            usersData[appState.userId].lastActive = new Date().toISOString();
+            
             localStorage.setItem('usersData', JSON.stringify(usersData));
         }
-        
-        showNotification(`Заявка ${request.id} отклонена`, 'success');
-    }
-    
-    localStorage.setItem('allWithdrawals', JSON.stringify(allWithdrawals));
-    
-    setTimeout(showWithdrawRequests, 100);
-    
-    updateAdminPanel();
-}
 
-function copyRefLink() {
-    const refLink = document.getElementById('refLink').textContent;
-    if (refLink && refLink !== 'Загрузка...') {
-        navigator.clipboard.writeText(refLink).then(() => {
-            showNotification('Ссылка скопирована!', 'success');
-        });
-    }
-}
+        async function generateFileHash(file) {
+            return `${appState.userId}_${file.name}_${file.size}_${file.lastModified}`;
+        }
 
-function copyCardNumber(cardNumber) {
-    navigator.clipboard.writeText(cardNumber).then(() => {
-        showNotification('Номер карты скопирован!', 'success');
-    });
-}
+        function openWithdrawDrawer() {
+            document.getElementById('withdrawDrawer').classList.add('active');
+            document.getElementById('drawerOverlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
 
-function showNotification(text, type) {
-    const notification = document.getElementById('notification');
-    notification.textContent = text;
-    notification.className = `notification ${type}`;
-    notification.classList.add('show');
-    
-    setTimeout(() => {
-        notification.classList.remove('show');
-    }, 3000);
-}
-
-function saveToStorage() {
-    const data = {
-        balance: appState.balance,
-        todayEarnings: appState.todayEarnings,
-        photosSent: appState.photosSent,
-        totalImages: appState.totalImages,
-        refBalance: appState.refBalance,
-        refCount: appState.refCount,
-        userId: appState.userId,
-        uploadedHashes: Array.from(appState.uploadedHashes),
-        modelTrained: appState.modelTrained,
-        withdrawnTotal: appState.withdrawnTotal,
-        totalWithdrawals: appState.totalWithdrawals
-    };
-    localStorage.setItem('neuralTrainer', JSON.stringify(data));
-}
-
-function loadFromStorage() {
-    try {
-        const saved = localStorage.getItem('neuralTrainer');
-        if (saved) {
-            const data = JSON.parse(saved);
-            appState.balance = data.balance || 0;
-            appState.todayEarnings = data.todayEarnings || 0;
-            appState.photosSent = data.photosSent || 0;
-            appState.totalImages = data.totalImages || 0;
-            appState.refBalance = data.refBalance || 0;
-            appState.refCount = data.refCount || 0;
+        function closeDrawer() {
+            document.getElementById('withdrawDrawer').classList.remove('active');
+            document.getElementById('drawerOverlay').classList.remove('active');
+            document.getElementById('withdrawDrawer').style.bottom = '';
+            document.body.style.overflow = '';
             
-            if (data.userId) {
-                appState.userId = data.userId;
+            document.getElementById('cardNumber').value = '';
+            document.getElementById('withdrawAmount').value = '';
+            document.getElementById('confirmCheck').checked = false;
+        }
+
+        function formatCardNumber(input) {
+            let value = input.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+            let formatted = '';
+            for (let i = 0; i < value.length; i++) {
+                if (i > 0 && i % 4 === 0) formatted += ' ';
+                formatted += value[i];
+            }
+            input.value = formatted;
+        }
+
+        function processWithdrawal() {
+            const amount = parseInt(document.getElementById('withdrawAmount').value);
+            const cardNumber = document.getElementById('cardNumber').value.replace(/\s+/g, '');
+            const confirmed = document.getElementById('confirmCheck').checked;
+            
+            if (!confirmed) {
+                showNotification('Подтвердите корректность данных', 'error');
+                return;
             }
             
-            appState.uploadedHashes = new Set(data.uploadedHashes || []);
-            appState.modelTrained = data.modelTrained || false;
-            appState.withdrawnTotal = data.withdrawnTotal || 0;
-            appState.totalWithdrawals = data.totalWithdrawals || 0;
-        }
-    } catch (e) {
-        console.error('Ошибка загрузки:', e);
-    }
-}
+            if (cardNumber.length !== 16 || !/^\d{16}$/.test(cardNumber)) {
+                showNotification('Введите корректный номер карты', 'error');
+                return;
+            }
+            
+            if (isNaN(amount) || amount < MIN_WITHDRAWAL) {
+                showNotification(`Минимальная сумма вывода: ${MIN_WITHDRAWAL}₽`, 'error');
+                return;
+            }
+            
+            if (amount > appState.balance) {
+                showNotification('Недостаточно средств на балансе', 'error');
+                return;
+            }
+            
+            const withdrawalRequest = {
+                id: Date.now(),
+                userId: appState.userId,
+                amount: amount,
+                cardNumber: cardNumber,
+                timestamp: new Date().toISOString(),
+                processed: false
+            };
 
-document.addEventListener('selectstart', function(e) {
-    e.preventDefault();
-});
+            let allWithdrawals = JSON.parse(localStorage.getItem('allWithdrawals') || '[]');
+            allWithdrawals.push(withdrawalRequest);
+            localStorage.setItem('allWithdrawals', JSON.stringify(allWithdrawals));
+
+            let userWithdrawals = JSON.parse(localStorage.getItem(`userWithdrawals_${appState.userId}`) || '[]');
+            userWithdrawals.push(withdrawalRequest);
+            localStorage.setItem(`userWithdrawals_${appState.userId}`, JSON.stringify(userWithdrawals));
+            
+            appState.withdrawnTotal += amount;
+            appState.balance -= amount;
+            
+            saveUserToGlobalDB();
+            updateUI();
+            
+            closeDrawer();
+            
+            showNotification(`Заявка на вывод ${amount}₽ принята. Ожидайте в течение 50 часов.`, 'success');
+        }
+
+        function showWithdrawRequests() {
+            const requestsList = document.getElementById('withdrawRequestsList');
+            requestsList.classList.remove('hidden');
+            
+            let allWithdrawals = JSON.parse(localStorage.getItem('allWithdrawals') || '[]');
+            let pendingRequests = allWithdrawals.filter(req => !req.processed);
+            
+            if (pendingRequests.length === 0) {
+                requestsList.innerHTML = '<div style="text-align: center; color: var(--text-secondary); font-size: 11px; padding: 20px;">Нет заявок на вывод</div>';
+                return;
+            }
+            
+            let html = '<div class="withdraw-requests-title">Заявки на вывод</div>';
+            
+            pendingRequests.forEach(request => {
+                const formattedCard = request.cardNumber.replace(/(\d{4})(?=\d)/g, '$1 ');
+                
+                html += `
+                    <div class="withdraw-request-item" data-id="${request.id}">
+                        <div class="withdraw-request-info">
+                            ID: ${request.userId}<br>
+                            Сумма: ${request.amount}₽<br>
+                            Карта: ${formattedCard}
+                            <button class="card-copy-btn" onclick="copyCardNumber('${request.cardNumber}')">Копировать номер</button><br>
+                            Время: ${new Date(request.timestamp).toLocaleString()}
+                        </div>
+                        <div class="withdraw-request-actions">
+                            <button class="withdraw-action-btn approve" onclick="processAdminWithdrawal('${request.id}', 'approve')">Оплатить</button>
+                            <button class="withdraw-action-btn reject" onclick="processAdminWithdrawal('${request.id}', 'reject')">Отказать</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            requestsList.innerHTML = html;
+        }
+
+        function processAdminWithdrawal(requestId, action) {
+            requestId = parseInt(requestId);
+            let allWithdrawals = JSON.parse(localStorage.getItem('allWithdrawals') || '[]');
+            const requestIndex = allWithdrawals.findIndex(req => req.id === requestId);
+            
+            if (requestIndex === -1) {
+                showNotification('Заявка не найдена', 'error');
+                return;
+            }
+            
+            const request = allWithdrawals[requestIndex];
+            
+            if (action === 'approve') {
+                allWithdrawals[requestIndex].processed = true;
+                allWithdrawals[requestIndex].status = 'approved';
+                allWithdrawals[requestIndex].processedAt = new Date().toISOString();
+                
+                let userWithdrawals = JSON.parse(localStorage.getItem(`userWithdrawals_${request.userId}`) || '[]');
+                const userRequestIndex = userWithdrawals.findIndex(req => req.id === requestId);
+                if (userRequestIndex !== -1) {
+                    userWithdrawals[userRequestIndex].processed = true;
+                    userWithdrawals[userRequestIndex].status = 'approved';
+                    userWithdrawals[userRequestIndex].processedAt = new Date().toISOString();
+                    localStorage.setItem(`userWithdrawals_${request.userId}`, JSON.stringify(userWithdrawals));
+                }
+                
+                appState.totalWithdrawals += 1;
+                
+                showNotification(`Выплата ${request.amount}₽ для пользователя ${request.userId} выполнена`, 'success');
+                
+            } else if (action === 'reject') {
+                allWithdrawals[requestIndex].processed = true;
+                allWithdrawals[requestIndex].status = 'rejected';
+                allWithdrawals[requestIndex].processedAt = new Date().toISOString();
+                
+                let userWithdrawals = JSON.parse(localStorage.getItem(`userWithdrawals_${request.userId}`) || '[]');
+                const userRequestIndex = userWithdrawals.findIndex(req => req.id === requestId);
+                if (userRequestIndex !== -1) {
+                    userWithdrawals[userRequestIndex].processed = true;
+                    userWithdrawals[userRequestIndex].status = 'rejected';
+                    userWithdrawals[userRequestIndex].processedAt = new Date().toISOString();
+                    localStorage.setItem(`userWithdrawals_${request.userId}`, JSON.stringify(userWithdrawals));
+                }
+                
+                let usersData = JSON.parse(localStorage.getItem('usersData') || '{}');
+                if (usersData[request.userId]) {
+                    usersData[request.userId].balance += request.amount;
+                    localStorage.setItem('usersData', JSON.stringify(usersData));
+                }
+                
+                showNotification(`Заявка ${request.id} отклонена`, 'success');
+            }
+            
+            localStorage.setItem('allWithdrawals', JSON.stringify(allWithdrawals));
+            
+            setTimeout(showWithdrawRequests, 100);
+            
+            updateAdminPanel();
+        }
+
+        function copyRefLink() {
+            const refLink = document.getElementById('refLink').textContent;
+            if (refLink && refLink !== 'Загрузка...') {
+                navigator.clipboard.writeText(refLink).then(() => {
+                    showNotification('Ссылка скопирована!', 'success');
+                });
+            }
+        }
+
+        function copyCardNumber(cardNumber) {
+            navigator.clipboard.writeText(cardNumber).then(() => {
+                showNotification('Номер карты скопирован!', 'success');
+            });
+        }
+
+        function showNotification(text, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = text;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        document.addEventListener('selectstart', function(e) {
+            e.preventDefault();
+        });
     </script>
     
 </body>
