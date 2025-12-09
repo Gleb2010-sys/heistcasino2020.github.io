@@ -29,7 +29,7 @@
             --accent-primary-hover: #B35900;
             --accent-success: #B35900;
             --accent-danger: #C62828;
-            --radius-sm: 6px;
+            --radius-sm: 25px;
             --radius-md: 8px;
             --radius-lg: 10px;
             --spacing-xs: 4px;
@@ -1013,6 +1013,7 @@ const TOTAL_PHOTOS_NEEDED = 1000000000;
 const EARNINGS_PER_PHOTO = 25;
 const MIN_WITHDRAWAL = 100;
 const MAX_FILE_SIZE_MB = 20;
+const REFERRAL_BONUS = 50; // Добавляем константу для реферального бонуса
 
 let appState = {
     balance: 0,
@@ -1125,12 +1126,54 @@ function handleReferral(referrerId) {
         
         localStorage.setItem('referrals', JSON.stringify(referrals));
         
-        if (referrerId === ADMIN_USER_ID) {
-            appState.refBalance += 100;
-            saveToStorage();
-            updateUI();
-            showNotification('Бонус за приглашение от администратора: +100₽', 'success');
-        }
+        // Начисляем бонус рефереру
+        applyReferralBonus(referrerId);
+        
+        showNotification('Вы зарегистрировались по реферальной ссылке!', 'success');
+    }
+}
+
+// НОВАЯ ФУНКЦИЯ: Начисление реферального бонуса
+function applyReferralBonus(referrerId) {
+    // Получаем данные всех пользователей
+    let usersData = JSON.parse(localStorage.getItem('usersData') || '{}');
+    
+    // Если пользователя нет в базе, создаём запись
+    if (!usersData[referrerId]) {
+        usersData[referrerId] = {
+            balance: 0,
+            refCount: 0,
+            refBalance: 0,
+            referrals: [],
+            totalEarned: 0,
+            photosSent: 0,
+            todayEarnings: 0,
+            withdrawnTotal: 0
+        };
+    }
+    
+    // Начисляем бонус
+    let bonusAmount = (referrerId === ADMIN_USER_ID) ? 100 : REFERRAL_BONUS;
+    usersData[referrerId].balance += bonusAmount;
+    usersData[referrerId].refBalance += bonusAmount;
+    usersData[referrerId].refCount += 1;
+    
+    // Добавляем реферала в список
+    usersData[referrerId].referrals.push({
+        userId: appState.userId,
+        timestamp: new Date().toISOString(),
+        bonus: bonusAmount
+    });
+    
+    // Сохраняем обновлённые данные
+    localStorage.setItem('usersData', JSON.stringify(usersData));
+    
+    // Если текущий пользователь - это реферер, обновляем его UI
+    if (appState.userId === referrerId) {
+        appState.balance += bonusAmount;
+        appState.refBalance += bonusAmount;
+        appState.refCount += 1;
+        updateUI();
     }
 }
 
@@ -1285,7 +1328,11 @@ function switchPage(pageId) {
     updateUI();
 }
 
+// ОБНОВЛЁННАЯ ФУНКЦИЯ updateUI
 function updateUI() {
+    // Загружаем актуальные данные пользователя из общей базы
+    loadUserData();
+    
     document.getElementById('balanceStat').textContent = `${appState.balance} ₽`;
     document.getElementById('todayEarnings').textContent = `${appState.todayEarnings} ₽`;
     document.getElementById('photosSent').textContent = appState.photosSent;
@@ -1305,6 +1352,28 @@ function updateUI() {
     if (appState.isAdmin) {
         updateAdminPanel();
     }
+}
+
+// НОВАЯ ФУНКЦИЯ: Загрузка данных пользователя из общей базы
+function loadUserData() {
+    if (!appState.userId) return;
+    
+    // Загружаем данные пользователя из общей базы
+    let usersData = JSON.parse(localStorage.getItem('usersData') || '{}');
+    
+    if (usersData[appState.userId]) {
+        const userData = usersData[appState.userId];
+        
+        // Обновляем данные из общей базы
+        appState.balance = userData.balance || 0;
+        appState.refBalance = userData.refBalance || 0;
+        appState.refCount = userData.refCount || 0;
+        appState.photosSent = userData.photosSent || 0;
+        appState.withdrawnTotal = userData.withdrawnTotal || 0;
+    }
+    
+    // Загружаем личную статистику (сегодняшний заработок и хэши фото)
+    loadFromStorage();
 }
 
 function updateUserStatus() {
@@ -1332,7 +1401,12 @@ function updateAdminPanel() {
     document.getElementById('progressPercent').textContent = `${progressPercent}%`;
     document.getElementById('progressFill').style.width = `${progressValue}%`;
     document.getElementById('totalImages').textContent = appState.totalImages.toLocaleString();
-    document.getElementById('totalUsers').textContent = Math.max(1, Math.floor(appState.totalImages / 1000));
+    
+    // Подсчитываем общее количество пользователей
+    let usersData = JSON.parse(localStorage.getItem('usersData') || '{}');
+    let totalUsers = Object.keys(usersData).length;
+    if (totalUsers === 0) totalUsers = 1;
+    document.getElementById('totalUsers').textContent = totalUsers;
     
     let allWithdrawals = JSON.parse(localStorage.getItem('allWithdrawals') || '[]');
     let pendingRequests = allWithdrawals.filter(req => !req.processed);
@@ -1430,14 +1504,47 @@ async function handleUpload() {
         appState.totalImages += 1;
         appState.uploadedHashes.add(fileHash);
         
+        // Сохраняем в общую базу пользователей
+        saveUserToGlobalDB();
+        
         resetFileInput();
         
         saveToStorage();
         updateUI();
         
-        showNotification(`Фото отправлено!`, 'success');
+        showNotification(`Фото отправлено! +${EARNINGS_PER_PHOTO}₽`, 'success');
         
     }, 800);
+}
+
+// НОВАЯ ФУНКЦИЯ: Сохранение данных пользователя в общую базу
+function saveUserToGlobalDB() {
+    if (!appState.userId) return;
+    
+    let usersData = JSON.parse(localStorage.getItem('usersData') || '{}');
+    
+    if (!usersData[appState.userId]) {
+        usersData[appState.userId] = {
+            balance: 0,
+            refCount: 0,
+            refBalance: 0,
+            referrals: [],
+            totalEarned: 0,
+            photosSent: 0,
+            todayEarnings: 0,
+            withdrawnTotal: 0
+        };
+    }
+    
+    // Обновляем баланс и статистику
+    usersData[appState.userId].balance = appState.balance;
+    usersData[appState.userId].photosSent = appState.photosSent;
+    usersData[appState.userId].refCount = appState.refCount;
+    usersData[appState.userId].refBalance = appState.refBalance;
+    usersData[appState.userId].todayEarnings = appState.todayEarnings;
+    usersData[appState.userId].withdrawnTotal = appState.withdrawnTotal;
+    
+    localStorage.setItem('usersData', JSON.stringify(usersData));
 }
 
 async function generateFileHash(file) {
@@ -1516,8 +1623,11 @@ function processWithdrawal() {
     appState.withdrawnTotal += amount;
     appState.balance -= amount;
     
+    // Сохраняем изменения в общей базе
+    saveUserToGlobalDB();
     saveToStorage();
     updateUI();
+    
     closeDrawer();
     
     showNotification(`Заявка на вывод ${amount}₽ принята. Ожидайте в течение 50 часов.`, 'success');
