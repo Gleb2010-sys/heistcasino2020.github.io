@@ -1152,15 +1152,17 @@
             }
         }
 
-        function initDrawerSwipe() {
+                function initDrawerSwipe() {
             const drawer = document.getElementById('withdrawDrawer');
             const overlay = document.getElementById('drawerOverlay');
+            const swipeZone = document.getElementById('drawerSwipeZone');
             
-            drawer.addEventListener('mousedown', startDrag);
+            // Добавляем обработчики ТОЛЬКО для зоны свайпа
+            swipeZone.addEventListener('mousedown', startDrag);
             document.addEventListener('mousemove', doDrag);
             document.addEventListener('mouseup', stopDrag);
             
-            drawer.addEventListener('touchstart', startDragTouch, {passive: false});
+            swipeZone.addEventListener('touchstart', startDragTouch, {passive: false});
             document.addEventListener('touchmove', doDragTouch, {passive: false});
             document.addEventListener('touchend', stopDrag);
             
@@ -1172,6 +1174,9 @@
         }
 
         function startDrag(e) {
+            // Разрешаем драг только если кликнули на зону свайпа
+            if (!e.target.closest('.drawer-swipe-zone')) return;
+            
             e.preventDefault();
             isDraggingDrawer = true;
             drawerStartY = e.clientY;
@@ -1182,6 +1187,9 @@
         }
 
         function startDragTouch(e) {
+            // Разрешаем драг только если тач в зоне свайпа
+            if (!e.target.closest('.drawer-swipe-zone')) return;
+            
             e.preventDefault();
             isDraggingDrawer = true;
             drawerStartY = e.touches[0].clientY;
@@ -1684,4 +1692,3 @@
     
 </body>
 </html>
-
