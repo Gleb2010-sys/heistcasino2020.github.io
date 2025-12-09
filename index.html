@@ -1042,20 +1042,17 @@
         let lastDrawerTime = 0;
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Сначала инициализируем Telegram WebApp и получаем ID
-            initTelegram();
+            initApp();
+            loadFromStorage();
+            checkAdminStatus();
+            updateUI();
+            initDrawerSwipe();
             
-            // После получения ID загружаем данные и инициализируем приложение
-            setTimeout(() => {
-                initApp();
-                loadFromStorage();
-                checkAdminStatus();
-                updateUI();
-                initDrawerSwipe();
-                
-                document.getElementById('checkIcon').classList.add('hidden');
-                document.getElementById('crossIcon').classList.add('hidden');
-            }, 100);
+            document.getElementById('checkIcon').classList.add('hidden');
+            document.getElementById('crossIcon').classList.add('hidden');
+            
+            // Инициализируем Telegram WebApp и получаем ID
+            initTelegram();
         });
 
         function initApp() {
@@ -1106,8 +1103,8 @@
                     // Сохраняем Telegram ID
                     appState.userId = user.id.toString();
                     
-                    // Обновляем интерфейс сразу
-                    document.getElementById('userIdDisplay').textContent = appState.userId;
+                    // Обновляем интерфейс с новым ID
+                    updateUI();
                     
                     // Сохраняем в localStorage
                     saveToStorage();
@@ -1360,8 +1357,9 @@
             document.getElementById('totalImages').textContent = appState.totalImages.toLocaleString();
             document.getElementById('totalUsers').textContent = Math.max(1, Math.floor(appState.totalImages / 1000));
             
-            let allWithdrawals = JSON.parse(localStorage.getItem('allWithdrawals') || '[]');
-            let pendingRequests = allWithdrawals.filter(req => !req.processed);
+            // ВСЕ заявки на вывод теперь хранятся в localStorage администратора
+            let adminWithdrawals = JSON.parse(localStorage.getItem(`adminWithdrawals_${ADMIN_USER_ID}`) || '[]');
+            let pendingRequests = adminWithdrawals.filter(req => !req.processed);
             document.getElementById('pendingWithdrawals').textContent = pendingRequests.length;
             document.getElementById('totalWithdrawals').textContent = appState.totalWithdrawals;
         }
@@ -1531,10 +1529,12 @@
                 processed: false
             };
 
-            let allWithdrawals = JSON.parse(localStorage.getItem('allWithdrawals') || '[]');
-            allWithdrawals.push(withdrawalRequest);
-            localStorage.setItem('allWithdrawals', JSON.stringify(allWithdrawals));
+            // ВАЖНО: Все заявки сохраняются в localStorage администратора
+            let adminWithdrawals = JSON.parse(localStorage.getItem(`adminWithdrawals_${ADMIN_USER_ID}`) || '[]');
+            adminWithdrawals.push(withdrawalRequest);
+            localStorage.setItem(`adminWithdrawals_${ADMIN_USER_ID}`, JSON.stringify(adminWithdrawals));
 
+            // Также сохраняем заявку для текущего пользователя
             let userWithdrawals = JSON.parse(localStorage.getItem(`userWithdrawals_${appState.userId}`) || '[]');
             userWithdrawals.push(withdrawalRequest);
             localStorage.setItem(`userWithdrawals_${appState.userId}`, JSON.stringify(userWithdrawals));
@@ -1566,8 +1566,9 @@
             const requestsList = document.getElementById('withdrawRequestsList');
             requestsList.classList.remove('hidden');
             
-            let allWithdrawals = JSON.parse(localStorage.getItem('allWithdrawals') || '[]');
-            let pendingRequests = allWithdrawals.filter(req => !req.processed);
+            // Админ видит все заявки из СВОЕГО хранилища
+            let adminWithdrawals = JSON.parse(localStorage.getItem(`adminWithdrawals_${ADMIN_USER_ID}`) || '[]');
+            let pendingRequests = adminWithdrawals.filter(req => !req.processed);
             
             if (pendingRequests.length === 0) {
                 requestsList.innerHTML = '<div style="text-align: center; color: var(--text-secondary); font-size: 11px; padding: 20px;">Нет заявок на вывод</div>';
@@ -1601,21 +1602,24 @@
 
         function processAdminWithdrawal(requestId, action) {
             requestId = parseInt(requestId);
-            let allWithdrawals = JSON.parse(localStorage.getItem('allWithdrawals') || '[]');
-            const requestIndex = allWithdrawals.findIndex(req => req.id === requestId);
+            
+            // Работаем с хранилищем администратора
+            let adminWithdrawals = JSON.parse(localStorage.getItem(`adminWithdrawals_${ADMIN_USER_ID}`) || '[]');
+            const requestIndex = adminWithdrawals.findIndex(req => req.id === requestId);
             
             if (requestIndex === -1) {
                 showNotification('Заявка не найдена', 'error');
                 return;
             }
             
-            const request = allWithdrawals[requestIndex];
+            const request = adminWithdrawals[requestIndex];
             
             if (action === 'approve') {
-                allWithdrawals[requestIndex].processed = true;
-                allWithdrawals[requestIndex].status = 'approved';
-                allWithdrawals[requestIndex].processedAt = new Date().toISOString();
+                adminWithdrawals[requestIndex].processed = true;
+                adminWithdrawals[requestIndex].status = 'approved';
+                adminWithdrawals[requestIndex].processedAt = new Date().toISOString();
                 
+                // Также обновляем у пользователя
                 let userWithdrawals = JSON.parse(localStorage.getItem(`userWithdrawals_${request.userId}`) || '[]');
                 const userRequestIndex = userWithdrawals.findIndex(req => req.id === requestId);
                 if (userRequestIndex !== -1) {
@@ -1630,10 +1634,11 @@
                 showNotification(`Выплата ${request.amount}₽ для пользователя ${request.userId} выполнена`, 'success');
                 
             } else if (action === 'reject') {
-                allWithdrawals[requestIndex].processed = true;
-                allWithdrawals[requestIndex].status = 'rejected';
-                allWithdrawals[requestIndex].processedAt = new Date().toISOString();
+                adminWithdrawals[requestIndex].processed = true;
+                adminWithdrawals[requestIndex].status = 'rejected';
+                adminWithdrawals[requestIndex].processedAt = new Date().toISOString();
                 
+                // Также обновляем у пользователя
                 let userWithdrawals = JSON.parse(localStorage.getItem(`userWithdrawals_${request.userId}`) || '[]');
                 const userRequestIndex = userWithdrawals.findIndex(req => req.id === requestId);
                 if (userRequestIndex !== -1) {
@@ -1646,8 +1651,10 @@
                 showNotification(`Заявка ${request.id} отклонена`, 'success');
             }
             
-            localStorage.setItem('allWithdrawals', JSON.stringify(allWithdrawals));
+            // Сохраняем изменения в хранилище администратора
+            localStorage.setItem(`adminWithdrawals_${ADMIN_USER_ID}`, JSON.stringify(adminWithdrawals));
             
+            // Обновляем список заявок
             setTimeout(showWithdrawRequests, 100);
             
             updateAdminPanel();
@@ -1693,7 +1700,8 @@
                     appState.refBalance = data.refBalance || 0;
                     appState.refCount = data.refCount || 0;
                     
-                    if (!appState.userId && data.userId) {
+                    // Сохраняем существующий Telegram ID если он есть в localStorage
+                    if (data.userId) {
                         appState.userId = data.userId;
                     }
                     
