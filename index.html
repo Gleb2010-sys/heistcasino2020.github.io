@@ -1,0 +1,1676 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuralTrainer AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        :root {
+            --bg-primary: #000000;
+            --bg-secondary: rgba(15, 15, 15, 0.95);
+            --bg-tertiary: #0A0A0A;
+            --border-primary: #222222;
+            --border-secondary: #333333;
+            --text-primary: #FFFFFF;
+            --text-secondary: #AAAAAA;
+            --text-tertiary: #666666;
+            --accent-primary: #CC6600;
+            --accent-primary-hover: #B35900;
+            --accent-success: #B35900;
+            --accent-danger: #C62828;
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 10px;
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 12px;
+            --spacing-lg: 16px;
+            --spacing-xl: 20px;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            font-size: 13px;
+            line-height: 1.4;
+            min-height: 100vh;
+            padding-bottom: 80px;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        .navbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-tertiary);
+            display: flex;
+            padding: 6px 0;
+            border-top: 1px solid var(--border-primary);
+            z-index: 1000;
+            height: 80px;
+            border-radius: 25px 25px 0 0;
+        }
+
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            padding: 6px 2px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 10px;
+            transition: color 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 38px;
+        }
+
+        .nav-item.active {
+            color: var(--text-primary);
+        }
+
+        .nav-icon {
+            font-size: 16px;
+            margin-bottom: 2px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .page {
+            display: none;
+            padding: 12px;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .main-content {
+            padding-top: 4px;
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            right: 1px;
+            bottom: 1px;
+            border: 1px solid var(--border-secondary);
+            border-radius: calc(var(--radius-md) - 1px);
+            pointer-events: none;
+        }
+
+        .card-title {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+
+        .stats-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .stat-item {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            min-height: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+            letter-spacing: 0.2px;
+        }
+
+        .stat-value {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .profile-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .user-id-display {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            text-align: center;
+        }
+
+        .user-id-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .user-id-value {
+            font-family: 'SF Mono', Monaco, 'Cascadia Mono', monospace;
+            font-size: 14px;
+            letter-spacing: 1px;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .status-display {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-sm);
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .status-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .status-value {
+            font-size: 12px;
+            font-weight: 500;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: #222222;
+            color: var(--text-secondary);
+        }
+
+        .status-value.pro {
+            background: linear-gradient(135deg, #CC6600, #FF8800);
+            color: white;
+        }
+
+        .status-value.vip {
+            background: linear-gradient(135deg, #8A2BE2, #DA70D6);
+            color: white;
+        }
+
+        .balance-display {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-sm);
+            padding: 16px 14px;
+            text-align: center;
+        }
+
+        .balance-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .balance-value {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 500;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin: 8px 0;
+            background: var(--accent-primary);
+            color: white;
+            letter-spacing: 0.3px;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+            background: var(--accent-primary-hover);
+        }
+
+        .btn-sber {
+            background: var(--accent-success);
+            position: relative;
+        }
+
+        .btn-secondary {
+            background: #222222;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-primary);
+        }
+
+        .btn-secondary:active {
+            background: #2A2A2A;
+        }
+
+        .ref-container {
+            margin-top: 4px;
+        }
+
+        .ref-link-box {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+
+        .ref-title {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .ref-link {
+            font-family: 'SF Mono', Monaco, 'Cascadia Mono', monospace;
+            font-size: 11px;
+            color: var(--text-primary);
+            background: #111111;
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-secondary);
+            word-break: break-all;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .copy-btn {
+            background: transparent;
+            border: 1px solid var(--border-secondary);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .copy-btn:active {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .ref-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .ref-stat {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-sm);
+            padding: 12px;
+            text-align: center;
+        }
+
+        .ref-stat-label {
+            font-size: 10px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .ref-stat-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .train-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 180px);
+            padding: 20px;
+        }
+
+        .upload-section {
+            margin-bottom: 16px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .upload-title {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .upload-area {
+            background: var(--bg-tertiary);
+            border: 2px dashed var(--border-secondary);
+            border-radius: var(--radius-md);
+            width: 280px;
+            height: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+            margin: 0 auto;
+        }
+
+        .upload-area:hover {
+            border-color: var(--accent-primary);
+        }
+
+        .plus-icon {
+            font-size: 80px;
+            color: var(--text-tertiary);
+            transition: all 0.2s;
+        }
+
+        .upload-preview {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        .status-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+
+        .status-icon img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+        }
+
+        .status-icon.check {
+            display: none;
+        }
+
+        .status-icon.cross {
+            display: none;
+        }
+
+        .upload-info {
+            text-align: center;
+            margin-top: 12px;
+            color: var(--text-secondary);
+            font-size: 11px;
+            min-height: 16px;
+            height: 16px;
+        }
+
+        .upload-btn {
+            margin-top: 16px;
+            width: 280px;
+            height: 44px;
+        }
+
+        .drawer {
+            position: fixed;
+            bottom: -100%;
+            left: 0;
+            right: 0;
+            background: var(--bg-tertiary);
+            border-radius: 20px 20px 0 0;
+            padding: 20px;
+            transition: bottom 0.3s ease;
+            z-index: 1001;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.6);
+            touch-action: pan-y;
+        }
+
+        .drawer.active {
+            bottom: 0;
+        }
+
+        .drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+            backdrop-filter: blur(2px);
+        }
+
+        .drawer-overlay.active {
+            display: block;
+        }
+
+        .drawer-handle {
+            width: 40px;
+            height: 5px;
+            background: var(--border-secondary);
+            border-radius: 3px;
+            margin: 0 auto 16px;
+            cursor: grab;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .drawer-handle:active {
+            cursor: grabbing;
+        }
+
+        .drawer-title {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--text-secondary);
+            font-size: 11px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .checkbox {
+            width: 18px;
+            height: 18px;
+            margin-right: 10px;
+            accent-color: var(--accent-success);
+            cursor: pointer;
+        }
+
+        .checkbox-label {
+            color: var(--text-secondary);
+            font-size: 11px;
+            line-height: 1.4;
+            cursor: pointer;
+        }
+
+        .admin-container {
+            margin-top: 4px;
+        }
+
+        .admin-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-secondary);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .admin-title {
+            font-size: 12px;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .model-progress {
+            margin: 16px 0;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: var(--bg-tertiary);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent-success);
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 16px 0;
+        }
+
+        .admin-stat {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-sm);
+            padding: 12px;
+            text-align: center;
+        }
+
+        .admin-stat-label {
+            font-size: 10px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .admin-stat-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .withdraw-requests {
+            margin-top: 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-sm);
+            padding: 12px;
+        }
+
+        .withdraw-requests-title {
+            font-size: 12px;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .withdraw-request-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-secondary);
+            border-radius: var(--radius-sm);
+            padding: 12px;
+            margin-bottom: 8px;
+        }
+
+        .withdraw-request-info {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .withdraw-request-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .withdraw-action-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .withdraw-action-btn.approve {
+            background: #21A038;
+            color: white;
+        }
+
+        .withdraw-action-btn.reject {
+            background: #D32F2F;
+            color: white;
+        }
+
+        .card-copy-btn {
+            background: transparent;
+            border: 1px solid var(--border-secondary);
+            color: var(--text-secondary);
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+            font-size: 10px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 4px;
+        }
+
+        .card-copy-btn:active {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .notification {
+            position: fixed;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            padding: 12px 20px;
+            border-radius: var(--radius-sm);
+            z-index: 2000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border-left: 4px solid #21A038;
+            transition: transform 0.3s ease;
+            max-width: calc(100% - 24px);
+            text-align: center;
+            font-size: 12px;
+            line-height: 1.4;
+            backdrop-filter: blur(10px);
+        }
+
+        .notification.error {
+            border-left-color: #D32F2F;
+        }
+
+        .notification.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .text-success {
+            color: #21A038 !important;
+        }
+
+        .text-danger {
+            color: #D32F2F !important;
+        }
+
+        .text-muted {
+            color: var(--text-secondary) !important;
+        }
+
+        @media (min-width: 768px) {
+            body {
+                max-width: 400px;
+                margin: 0 auto;
+                border-left: 1px solid var(--border-primary);
+                border-right: 1px solid var(--border-primary);
+                min-height: 100vh;
+            }
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        .drawer-swipe-zone {
+            cursor: grab;
+            -webkit-user-select: none;
+            user-select: none;
+            position: relative;
+        }
+        
+        .drawer-swipe-zone:active {
+            cursor: grabbing;
+        }
+    </style>
+</head>
+<body>
+    <div class="notification" id="notification"></div>
+
+    <div class="drawer-overlay" id="drawerOverlay"></div>
+
+    <div class="drawer" id="withdrawDrawer">
+        <div class="drawer-swipe-zone" id="drawerSwipeZone">
+            <div class="drawer-handle" id="drawerHandle"></div>
+            <div class="drawer-title">Вывод средств</div>
+        </div>
+        
+        <div class="input-group">
+            <label class="input-label">Номер карты</label>
+            <input type="text" class="input-field" id="cardNumber" placeholder="0000 0000 0000 0000" maxlength="19">
+        </div>
+        
+        <div class="input-group">
+            <label class="input-label">Сумма (от 100 ₽)</label>
+            <input type="number" class="input-field" id="withdrawAmount" placeholder="100" min="100">
+        </div>
+        
+        <div class="checkbox-group">
+            <input type="checkbox" id="confirmCheck" class="checkbox">
+            <label for="confirmCheck" class="checkbox-label">Подтверждаю корректность указанных данных</label>
+        </div>
+        
+        <button class="btn btn-sber" id="confirmWithdrawBtn">Вывести</button>
+    </div>
+
+    <div class="container">
+        <div id="statsPage" class="page active">
+            <div class="main-content">
+                <div class="stats-container">
+                    <div class="stat-item">
+                        <div class="stat-label">Текущий баланс</div>
+                        <div class="stat-value" id="balanceStat">0 ₽</div>
+                    </div>
+                    
+                    <div class="stat-item">
+                        <div class="stat-label">Заработок за 24ч</div>
+                        <div class="stat-value" id="todayEarnings">0 ₽</div>
+                    </div>
+                    
+                    <div class="stat-item">
+                        <div class="stat-label">Фото отправлено</div>
+                        <div class="stat-value" id="photosSent">0</div>
+                    </div>
+                    
+                    <div class="stat-item">
+                        <div class="stat-label">Выведено средств</div>
+                        <div class="stat-value" id="withdrawnTotal">0 ₽</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="trainPage" class="page">
+            <div class="main-content">
+                <div class="train-container">
+                    <div class="upload-section">
+                        <div class="upload-title">Загрузите фото для обучения AI</div>
+                        <div class="upload-area" id="uploadArea">
+                            <div class="plus-icon" id="plusIcon">+</div>
+                            
+                            <img class="upload-preview hidden" id="uploadPreview" src="" alt="Превью">
+                            
+                            <div class="status-icon check" id="checkIcon">
+                                <img src="https://s.iimg.su/s/08/ggvjLegxdDo1LtCIkfdjRuNFD4V7NcYoDQBizaWu.png" alt="✓">
+                            </div>
+                            
+                            <div class="status-icon cross" id="crossIcon">
+                                <img src="https://s.iimg.su/s/08/gmnjlHJxe93hJXVUjWu9qGzZEUEHbA9ZbucMirYG.png" alt="✗">
+                            </div>
+                        </div>
+                        <div class="upload-info" id="uploadInfo">Выберите фотографию</div>
+                    </div>
+                    
+                    <input type="file" id="fileInput" accept="image/*" hidden>
+                    <button class="btn upload-btn" id="uploadBtn">Отправить на обучение</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="profilePage" class="page">
+            <div class="main-content">
+                <div class="profile-container">
+                    <div class="user-id-display">
+                        <div class="user-id-label">Ваш ID</div>
+                        <div class="user-id-value" id="userIdDisplay">0000000000</div>
+                    </div>
+
+                    <div class="status-display">
+                        <div class="status-label">Статус</div>
+                        <div class="status-value" id="statusValue">Usual</div>
+                    </div>
+
+                    <div class="balance-display">
+                        <div class="balance-label">Баланс</div>
+                        <div class="balance-value" id="balanceValue">0 ₽</div>
+                    </div>
+
+                    <button class="btn btn-sber" id="withdrawBtn">Вывести средства</button>
+
+                    <div class="ref-container">
+                        <div class="ref-link-box">
+                            <div class="ref-title">Реферальная ссылка</div>
+                            <div class="ref-link" id="refLink">https://t.me/NeuralTrainerBot/start?ref=0000000000</div>
+                            <button class="copy-btn" id="copyRefBtn">СКОПИРОВАТЬ</button>
+                        </div>
+                        
+                        <div class="ref-stats">
+                            <div class="ref-stat">
+                                <div class="ref-stat-label">Приглашено</div>
+                                <div class="ref-stat-value" id="refCount">0</div>
+                            </div>
+                            <div class="ref-stat">
+                                <div class="ref-stat-label">Реф. баланс</div>
+                                <div class="ref-stat-value" id="refBalance">0 ₽</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="adminPage" class="page">
+            <div class="main-content">
+                <div class="admin-container">
+                    <div class="admin-card">
+                        <div class="admin-title">Панель администратора</div>
+                        
+                        <div class="model-progress">
+                            <div class="progress-label">
+                                <span>Прогресс обучения</span>
+                                <span id="progressPercent">0%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="stats-grid">
+                            <div class="admin-stat">
+                                <div class="admin-stat-label">Всего фото</div>
+                                <div class="admin-stat-value" id="totalImages">0</div>
+                            </div>
+                            <div class="admin-stat">
+                                <div class="admin-stat-label">Пользователей</div>
+                                <div class="admin-stat-value" id="totalUsers">1</div>
+                            </div>
+                            <div class="admin-stat">
+                                <div class="admin-stat-label">Ожидает вывода</div>
+                                <div class="admin-stat-value" id="pendingWithdrawals">0</div>
+                            </div>
+                            <div class="admin-stat">
+                                <div class="admin-stat-label">Всего выводов</div>
+                                <div class="admin-stat-value" id="totalWithdrawals">0</div>
+                            </div>
+                        </div>
+                        
+                        <button class="btn" id="processWithdrawalsBtn" style="margin-top: 12px;">Обработать выводы</button>
+                        
+                        <div id="withdrawRequestsList" class="withdraw-requests hidden" style="margin-top: 12px;">
+                            <div class="withdraw-requests-title">Заявки на вывод</div>
+                        </div>
+                        
+                        <div id="aiOutput" class="hidden" style="margin-top: 12px; padding: 12px; background: var(--bg-tertiary); border-radius: var(--radius-sm); border: 1px solid var(--border-primary);">
+                            <div style="font-size: 11px; color: #21A038;">🤖 AI: <span id="aiMessage">Готов к работе</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="navbar">
+        <a href="#" class="nav-item active" data-page="stats">
+            <span class="nav-icon">
+                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Статистика" style="width: 18px; height: 18px; object-fit: contain;">
+            </span>
+            Статистика
+        </a>
+        <a href="#" class="nav-item" data-page="train">
+            <span class="nav-icon">
+                <img src="https://cdn-icons-png.flaticon.com/512/1998/1998678.png" alt="Обучение" style="width: 18px; height: 18px; object-fit: contain;">
+            </span>
+            Обзор
+        </a>
+        <a href="#" class="nav-item" data-page="profile">
+            <span class="nav-icon">
+                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Профиль" style="width: 18px; height: 18px; object-fit: contain;">
+            </span>
+            Профиль
+        </a>
+    </div>
+
+    <script>
+        const ADMIN_USER_ID = "6501587113";
+        const TOTAL_PHOTOS_NEEDED = 1000000000;
+        const EARNINGS_PER_PHOTO = 25;
+        const MIN_WITHDRAWAL = 100;
+        const MAX_FILE_SIZE_MB = 20;
+
+        let appState = {
+            balance: 0,
+            todayEarnings: 0,
+            photosSent: 0,
+            totalImages: 0,
+            refBalance: 0,
+            refCount: 0,
+            userId: '',
+            status: 'usual',
+            uploadedHashes: new Set(),
+            currentFile: null,
+            isAdmin: false,
+            modelTrained: false,
+            adminNavAdded: false,
+            withdrawnTotal: 0,
+            pendingWithdrawals: [],
+            totalWithdrawals: 0
+        };
+
+        let drawerStartY = 0;
+        let drawerStartBottom = 0;
+        let isDraggingDrawer = false;
+        let drawerVelocity = 0;
+        let lastDrawerY = 0;
+        let lastDrawerTime = 0;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initApp();
+            initTelegram();
+            loadFromStorage();
+            checkAdminStatus();
+            updateUI();
+            initDrawerSwipe();
+            
+            document.getElementById('checkIcon').classList.add('hidden');
+            document.getElementById('crossIcon').classList.add('hidden');
+        });
+
+        function initApp() {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const pageId = this.getAttribute('data-page');
+                    switchPage(pageId);
+                });
+            });
+
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            const uploadBtn = document.getElementById('uploadBtn');
+
+            uploadArea.addEventListener('click', function() {
+                fileInput.click();
+            });
+            
+            fileInput.addEventListener('change', handleFileSelect);
+            uploadBtn.addEventListener('click', handleUpload);
+            document.getElementById('withdrawBtn').addEventListener('click', openWithdrawDrawer);
+            document.getElementById('confirmWithdrawBtn').addEventListener('click', processWithdrawal);
+            document.getElementById('drawerOverlay').addEventListener('click', closeDrawer);
+            document.getElementById('cardNumber').addEventListener('input', function(e) {
+                formatCardNumber(this);
+            });
+
+            document.getElementById('copyRefBtn').addEventListener('click', copyRefLink);
+            document.getElementById('processWithdrawalsBtn')?.addEventListener('click', showWithdrawRequests);
+        }
+
+        function initTelegram() {
+            let telegramUserId = null;
+            
+            if (window.Telegram && Telegram.WebApp) {
+                Telegram.WebApp.ready();
+                Telegram.WebApp.expand();
+                
+                const tg = Telegram.WebApp;
+                const initData = tg.initData || '';
+                const initDataUnsafe = tg.initDataUnsafe || {};
+                
+                if (initDataUnsafe.user && initDataUnsafe.user.id) {
+                    telegramUserId = initDataUnsafe.user.id.toString();
+                    
+                    // Сохраняем Telegram ID
+                    appState.userId = telegramUserId;
+                    
+                    const refParam = getRefParam();
+                    if (refParam && refParam !== telegramUserId) {
+                        handleReferral(refParam);
+                    }
+                    
+                    saveToStorage();
+                    updateUI();
+                }
+                
+                tg.MainButton.hide();
+                tg.BackButton.hide();
+            }
+            
+            // Если нет Telegram WebApp, используем сохраненный ID
+            if (!telegramUserId && appState.userId) {
+                // ID уже сохранен в localStorage, оставляем его
+            }
+        }
+
+        function getRefParam() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('ref') || urlParams.get('startParam') || null;
+        }
+
+        function handleReferral(referrerId) {
+            let referrals = JSON.parse(localStorage.getItem('referrals') || '{}');
+            
+            if (!referrals[appState.userId]) {
+                referrals[appState.userId] = {
+                    referrer: referrerId,
+                    timestamp: new Date().toISOString(),
+                    bonusApplied: false
+                };
+                
+                localStorage.setItem('referrals', JSON.stringify(referrals));
+                
+                if (referrerId === ADMIN_USER_ID) {
+                    appState.refBalance += 100;
+                    saveToStorage();
+                    updateUI();
+                    showNotification('Бонус за приглашение от администратора: +100₽', 'success');
+                }
+            }
+        }
+
+        function initDrawerSwipe() {
+            const drawer = document.getElementById('withdrawDrawer');
+            const overlay = document.getElementById('drawerOverlay');
+            
+            drawer.addEventListener('mousedown', startDrag);
+            document.addEventListener('mousemove', doDrag);
+            document.addEventListener('mouseup', stopDrag);
+            
+            drawer.addEventListener('touchstart', startDragTouch, {passive: false});
+            document.addEventListener('touchmove', doDragTouch, {passive: false});
+            document.addEventListener('touchend', stopDrag);
+            
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) {
+                    closeDrawer();
+                }
+            });
+        }
+
+        function startDrag(e) {
+            e.preventDefault();
+            isDraggingDrawer = true;
+            drawerStartY = e.clientY;
+            drawerStartBottom = parseInt(getComputedStyle(document.getElementById('withdrawDrawer')).bottom);
+            lastDrawerY = e.clientY;
+            lastDrawerTime = Date.now();
+            document.body.style.overflow = 'hidden';
+        }
+
+        function startDragTouch(e) {
+            e.preventDefault();
+            isDraggingDrawer = true;
+            drawerStartY = e.touches[0].clientY;
+            drawerStartBottom = parseInt(getComputedStyle(document.getElementById('withdrawDrawer')).bottom);
+            lastDrawerY = e.touches[0].clientY;
+            lastDrawerTime = Date.now();
+            document.body.style.overflow = 'hidden';
+        }
+
+        function doDrag(e) {
+            if (!isDraggingDrawer) return;
+            e.preventDefault();
+            
+            const currentY = e.clientY;
+            const deltaY = drawerStartY - currentY;
+            const drawer = document.getElementById('withdrawDrawer');
+            const newBottom = Math.min(Math.max(drawerStartBottom + deltaY, -600), 0);
+            
+            drawer.style.bottom = newBottom + 'px';
+            drawer.style.transition = 'none'; 
+            
+            const currentTime = Date.now();
+            const deltaTime = currentTime - lastDrawerTime;
+            if (deltaTime > 0) {
+                drawerVelocity = (currentY - lastDrawerY) / deltaTime;
+            }
+            lastDrawerY = currentY;
+            lastDrawerTime = currentTime;
+        }
+
+        function doDragTouch(e) {
+            if (!isDraggingDrawer) return;
+            e.preventDefault();
+            
+            const currentY = e.touches[0].clientY;
+            const deltaY = drawerStartY - currentY;
+            const drawer = document.getElementById('withdrawDrawer');
+            const newBottom = Math.min(Math.max(drawerStartBottom + deltaY, -600), 0);
+            
+            drawer.style.bottom = newBottom + 'px';
+            drawer.style.transition = 'none'; 
+            
+            const currentTime = Date.now();
+            const deltaTime = currentTime - lastDrawerTime;
+            if (deltaTime > 0) {
+                drawerVelocity = (currentY - lastDrawerY) / deltaTime;
+            }
+            lastDrawerY = currentY;
+            lastDrawerTime = currentTime;
+        }
+
+        function stopDrag() {
+            if (!isDraggingDrawer) return;
+            
+            isDraggingDrawer = false;
+            const drawer = document.getElementById('withdrawDrawer');
+            
+            drawer.style.transition = 'bottom 0.3s ease';
+            
+            const currentBottom = parseInt(drawer.style.bottom) || 0;
+            
+            if (drawerVelocity > 0.5 || currentBottom < -150) {
+                closeDrawer();
+            } else {
+                drawer.style.bottom = '0px';
+            }
+            
+            drawerVelocity = 0;
+            document.body.style.overflow = '';
+        }
+
+        function checkAdminStatus() {
+            appState.isAdmin = (appState.userId === ADMIN_USER_ID);
+            
+            if (appState.isAdmin && !appState.adminNavAdded) {
+                addAdminNavigation();
+                appState.adminNavAdded = true;
+            }
+        }
+
+        function addAdminNavigation() {
+            const navbar = document.querySelector('.navbar');
+            const adminNav = document.createElement('a');
+            adminNav.href = '#';
+            adminNav.className = 'nav-item';
+            adminNav.setAttribute('data-page', 'admin');
+            adminNav.innerHTML = '<span class="nav-icon"><img src="https://cdn-icons-png.flaticon.com/512/1828/1828490.png" alt="Админ" style="width: 18px; height: 18px; object-fit: contain;"></span>Админ';
+            navbar.appendChild(adminNav);
+            
+            adminNav.addEventListener('click', function(e) {
+                e.preventDefault();
+                switchPage('admin');
+            });
+        }
+
+        function switchPage(pageId) {
+            if (pageId === 'admin' && !appState.isAdmin) {
+                showNotification('Доступ запрещён', 'error');
+                return;
+            }
+            
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('data-page') === pageId) {
+                    item.classList.add('active');
+                }
+            });
+
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId + 'Page').classList.add('active');
+
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('balanceStat').textContent = `${appState.balance} ₽`;
+            document.getElementById('todayEarnings').textContent = `${appState.todayEarnings} ₽`;
+            document.getElementById('photosSent').textContent = appState.photosSent;
+            document.getElementById('withdrawnTotal').textContent = `${appState.withdrawnTotal} ₽`;
+            
+            document.getElementById('userIdDisplay').textContent = appState.userId || 'Не определен';
+            document.getElementById('balanceValue').textContent = `${appState.balance} ₽`;
+            
+            // Используем Telegram ID для реферальной ссылки
+            const refLink = appState.userId ? `https://t.me/NeuralTrainerBot/start?ref=${appState.userId}` : 'https://t.me/NeuralTrainerBot';
+            document.getElementById('refLink').textContent = refLink;
+            
+            document.getElementById('refCount').textContent = appState.refCount;
+            document.getElementById('refBalance').textContent = `${appState.refBalance} ₽`;
+            
+            updateUserStatus();
+            
+            if (appState.isAdmin) {
+                updateAdminPanel();
+            }
+        }
+
+        function updateUserStatus() {
+            const statusElement = document.getElementById('statusValue');
+            
+            if (appState.balance >= 15000) {
+                appState.status = 'vip';
+                statusElement.className = 'status-value vip';
+                statusElement.textContent = 'VIP';
+            } else if (appState.balance >= 5000) {
+                appState.status = 'pro';
+                statusElement.className = 'status-value pro';
+                statusElement.textContent = 'Professional';
+            } else {
+                appState.status = 'usual';
+                statusElement.className = 'status-value';
+                statusElement.textContent = 'Usual';
+            }
+        }
+
+        function updateAdminPanel() {
+            const progressPercent = (appState.totalImages / TOTAL_PHOTOS_NEEDED * 100).toFixed(8);
+            const progressValue = Math.min(100, parseFloat(progressPercent));
+            
+            document.getElementById('progressPercent').textContent = `${progressPercent}%`;
+            document.getElementById('progressFill').style.width = `${progressValue}%`;
+            document.getElementById('totalImages').textContent = appState.totalImages.toLocaleString();
+            document.getElementById('totalUsers').textContent = Math.max(1, Math.floor(appState.totalImages / 1000));
+            
+            let allWithdrawals = JSON.parse(localStorage.getItem('allWithdrawals') || '[]');
+            let pendingRequests = allWithdrawals.filter(req => !req.processed);
+            document.getElementById('pendingWithdrawals').textContent = pendingRequests.length;
+            document.getElementById('totalWithdrawals').textContent = appState.totalWithdrawals;
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+                showNotification(`Файл слишком большой (макс. ${MAX_FILE_SIZE_MB}МБ)`, 'error');
+                resetFileInput();
+                return;
+            }
+
+            if (!file.type.startsWith('image/')) {
+                showNotification('Выберите изображение', 'error');
+                resetFileInput();
+                return;
+            }
+
+            appState.currentFile = file;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('uploadPreview');
+                preview.src = e.target.result;
+                preview.classList.remove('hidden');
+                document.getElementById('plusIcon').classList.add('hidden');
+                
+                document.getElementById('checkIcon').classList.remove('hidden');
+                document.getElementById('crossIcon').classList.add('hidden');
+                document.getElementById('uploadInfo').textContent = 'Фото выбрано';
+                document.getElementById('uploadInfo').className = 'upload-info text-success';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function showStatusIcon(type, message) {
+            const checkIcon = document.getElementById('checkIcon');
+            const crossIcon = document.getElementById('crossIcon');
+            const uploadInfo = document.getElementById('uploadInfo');
+            
+            if (type === 'check') {
+                checkIcon.classList.remove('hidden');
+                crossIcon.classList.add('hidden');
+                uploadInfo.textContent = message;
+                uploadInfo.className = 'upload-info text-success';
+            } else if (type === 'cross') {
+                checkIcon.classList.add('hidden');
+                crossIcon.classList.remove('hidden');
+                uploadInfo.textContent = message;
+                uploadInfo.className = 'upload-info text-danger';
+            } else {
+                checkIcon.classList.add('hidden');
+                crossIcon.classList.add('hidden');
+                uploadInfo.textContent = message || 'Выберите фотографию';
+                uploadInfo.className = 'upload-info';
+            }
+        }
+
+        function resetFileInput() {
+            document.getElementById('fileInput').value = '';
+            document.getElementById('uploadPreview').classList.add('hidden');
+            document.getElementById('uploadPreview').src = '';
+            document.getElementById('plusIcon').classList.remove('hidden');
+            appState.currentFile = null;
+            showStatusIcon('none', 'Выберите фотографию');
+        }
+
+        async function handleUpload() {
+            if (!appState.currentFile) {
+                showNotification('Сначала выберите фото', 'error');
+                return;
+            }
+
+            const file = appState.currentFile;
+            
+            const fileHash = await generateFileHash(file);
+            
+            if (appState.uploadedHashes.has(fileHash)) {
+                showStatusIcon('cross', 'Это фото уже было загружено');
+                showNotification('Это фото уже было загруженно', 'error');
+                return;
+            }
+
+            showStatusIcon('none', 'Отправка...');
+            
+            setTimeout(() => {
+                appState.balance += EARNINGS_PER_PHOTO;
+                appState.todayEarnings += EARNINGS_PER_PHOTO;
+                appState.photosSent += 1;
+                appState.totalImages += 1;
+                appState.uploadedHashes.add(fileHash);
+                
+                resetFileInput();
+                
+                saveToStorage();
+                updateUI();
+                
+                showNotification(`Фото отправлено!`, 'success');
+                
+            }, 800);
+        }
+
+        async function generateFileHash(file) {
+            return `${file.name}_${file.size}_${file.lastModified}`;
+        }
+
+        function openWithdrawDrawer() {
+            document.getElementById('withdrawDrawer').classList.add('active');
+            document.getElementById('drawerOverlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeDrawer() {
+            document.getElementById('withdrawDrawer').classList.remove('active');
+            document.getElementById('drawerOverlay').classList.remove('active');
+            document.getElementById('withdrawDrawer').style.bottom = '';
+            document.body.style.overflow = '';
+            
+            document.getElementById('cardNumber').value = '';
+            document.getElementById('withdrawAmount').value = '';
+            document.getElementById('confirmCheck').checked = false;
+        }
+
+        function formatCardNumber(input) {
+            let value = input.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+            let formatted = '';
+            for (let i = 0; i < value.length; i++) {
+                if (i > 0 && i % 4 === 0) formatted += ' ';
+                formatted += value[i];
+            }
+            input.value = formatted;
+        }
+
+        function processWithdrawal() {
+            const amount = parseInt(document.getElementById('withdrawAmount').value);
+            const cardNumber = document.getElementById('cardNumber').value.replace(/\s+/g, '');
+            const confirmed = document.getElementById('confirmCheck').checked;
+            
+            if (!confirmed) {
+                showNotification('Подтвердите корректность данных', 'error');
+                return;
+            }
+            
+            if (cardNumber.length !== 16 || !/^\d{16}$/.test(cardNumber)) {
+                showNotification('Введите корректный номер карты', 'error');
+                return;
+            }
+            
+            if (isNaN(amount) || amount < MIN_WITHDRAWAL) {
+                showNotification(`Минимальная сумма вывода: ${MIN_WITHDRAWAL}₽`, 'error');
+                return;
+            }
+            
+            if (amount > appState.balance) {
+                showNotification('Недостаточно средств на балансе', 'error');
+                return;
+            }
+            
+            const withdrawalRequest = {
+                id: Date.now(),
+                userId: appState.userId,
+                amount: amount,
+                cardNumber: cardNumber,
+                timestamp: new Date().toISOString(),
+                processed: false
+            };
+            
+            let allWithdrawals = JSON.parse(localStorage.getItem('allWithdrawals') || '[]');
+            allWithdrawals.push(withdrawalRequest);
+            localStorage.setItem('allWithdrawals', JSON.stringify(allWithdrawals));
+            
+            appState.withdrawnTotal += amount;
+            appState.balance -= amount;
+            
+            saveToStorage();
+            updateUI();
+            closeDrawer();
+            
+            showNotification(`Заявка на вывод ${amount}₽ принята. Ожидайте в течение 50 часов.`, 'success');
+        }
+
+        function copyRefLink() {
+            const link = appState.userId ? `https://t.me/NeuralTrainerBot/start?ref=${appState.userId}` : 'https://t.me/NeuralTrainerBot';
+            navigator.clipboard.writeText(link).then(() => {
+                showNotification('Ссылка скопирована', 'success');
+            });
+        }
+
+        function copyCardNumber(cardNumber) {
+            navigator.clipboard.writeText(cardNumber).then(() => {
+                showNotification('Номер карты скопирован', 'success');
+            });
+        }
+
+        function showWithdrawRequests() {
+            const requestsList = document.getElementById('withdrawRequestsList');
+            requestsList.classList.remove('hidden');
+            
+            let allWithdrawals = JSON.parse(localStorage.getItem('allWithdrawals') || '[]');
+            let pendingRequests = allWithdrawals.filter(req => !req.processed);
+            
+            if (pendingRequests.length === 0) {
+                requestsList.innerHTML = '<div style="text-align: center; color: var(--text-secondary); font-size: 11px; padding: 20px;">Нет заявок на вывод</div>';
+                return;
+            }
+            
+            let html = '<div class="withdraw-requests-title">Заявки на вывод</div>';
+            
+            pendingRequests.forEach(request => {
+                const formattedCard = request.cardNumber.replace(/(\d{4})(?=\d)/g, '$1 ');
+                
+                html += `
+                    <div class="withdraw-request-item" data-id="${request.id}">
+                        <div class="withdraw-request-info">
+                            ID: ${request.userId}<br>
+                            Сумма: ${request.amount}₽<br>
+                            Карта: ${formattedCard}
+                            <button class="card-copy-btn" onclick="copyCardNumber('${request.cardNumber}')">Копировать номер</button><br>
+                            Время: ${new Date(request.timestamp).toLocaleString()}
+                        </div>
+                        <div class="withdraw-request-actions">
+                            <button class="withdraw-action-btn approve" onclick="processAdminWithdrawal('${request.id}', 'approve')">Оплатить</button>
+                            <button class="withdraw-action-btn reject" onclick="processAdminWithdrawal('${request.id}', 'reject')">Отказать</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            requestsList.innerHTML = html;
+        }
+
+        function processAdminWithdrawal(requestId, action) {
+            requestId = parseInt(requestId);
+            let allWithdrawals = JSON.parse(localStorage.getItem('allWithdrawals') || '[]');
+            const requestIndex = allWithdrawals.findIndex(req => req.id === requestId);
+            
+            if (requestIndex === -1) {
+                showNotification('Заявка не найдена', 'error');
+                return;
+            }
+            
+            const request = allWithdrawals[requestIndex];
+            
+            if (action === 'approve') {
+                allWithdrawals[requestIndex].processed = true;
+                allWithdrawals[requestIndex].status = 'approved';
+                allWithdrawals[requestIndex].processedAt = new Date().toISOString();
+                
+                appState.totalWithdrawals += 1;
+                
+                showNotification(`Выплата ${request.amount}₽ для пользователя ${request.userId} выполнена`, 'success');
+                
+                setTimeout(showWithdrawRequests, 100);
+                
+            } else if (action === 'reject') {
+                allWithdrawals[requestIndex].processed = true;
+                allWithdrawals[requestIndex].status = 'rejected';
+                allWithdrawals[requestIndex].processedAt = new Date().toISOString();
+                
+                showNotification(`Заявка ${request.id} отклонена`, 'success');
+                
+                setTimeout(showWithdrawRequests, 100);
+            }
+            
+            localStorage.setItem('allWithdrawals', JSON.stringify(allWithdrawals));
+            
+            updateAdminPanel();
+        }
+
+        function showNotification(text, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = text;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        function saveToStorage() {
+            const data = {
+                balance: appState.balance,
+                todayEarnings: appState.todayEarnings,
+                photosSent: appState.photosSent,
+                totalImages: appState.totalImages,
+                refBalance: appState.refBalance,
+                refCount: appState.refCount,
+                userId: appState.userId,
+                uploadedHashes: Array.from(appState.uploadedHashes),
+                modelTrained: appState.modelTrained,
+                withdrawnTotal: appState.withdrawnTotal,
+                totalWithdrawals: appState.totalWithdrawals
+            };
+            localStorage.setItem('neuralTrainer', JSON.stringify(data));
+        }
+
+        function loadFromStorage() {
+            try {
+                const saved = localStorage.getItem('neuralTrainer');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    appState.balance = data.balance || 0;
+                    appState.todayEarnings = data.todayEarnings || 0;
+                    appState.photosSent = data.photosSent || 0;
+                    appState.totalImages = data.totalImages || 0;
+                    appState.refBalance = data.refBalance || 0;
+                    appState.refCount = data.refCount || 0;
+                    
+                    // Сохраняем существующий Telegram ID если он есть в localStorage
+                    if (data.userId) {
+                        appState.userId = data.userId;
+                    }
+                    
+                    appState.uploadedHashes = new Set(data.uploadedHashes || []);
+                    appState.modelTrained = data.modelTrained || false;
+                    appState.withdrawnTotal = data.withdrawnTotal || 0;
+                    appState.totalWithdrawals = data.totalWithdrawals || 0;
+                }
+            } catch (e) {
+                console.error('Ошибка загрузки:', e);
+            }
+        }
+
+        document.addEventListener('selectstart', function(e) {
+            e.preventDefault();
+        });
+    </script>
+    
+</body>
+</html>
