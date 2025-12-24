@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Тапалка Игра</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://yandex.ru/games/sdk/v2"></script>
+    <meta name="yandex-verification" content="d7d3b2b7a1e5c9f3">
+</head>
+<body>
+    <div class="container">
+        <div class="top-info">
+            <div class="gold-info">
+                <div class="gold-display">
+                    <span id="gold">0</span> голды
+                </div>
+                <div class="per-second-display" id="perSecondDisplay">
+                    +0/сек
+                </div>
+            </div>
+            <div class="multiplier-display" id="multiplier"></div>
+        </div>
+
+        <div class="tap-area">
+            <img id="mainImage" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Тапалка" class="tappable-image" draggable="false">
+            <div class="click-effect" id="clickEffect">+1</div>
+        </div>
+
+        <div class="prestige-container">
+            <div class="prestige-btn" id="prestigeBtn">
+                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Перерождение">
+            </div>
+        </div>
+
+        <div class="bottom-menu">
+            <div class="menu-btn" id="perSecondBtn">
+                <img src="https://cdn-icons-png.flaticon.com/512/992/992700.png" alt="В секунду">
+            </div>
+            <div class="menu-btn" id="perClickBtn">
+                <img src="https://cdn-icons-png.flaticon.com/512/3522/3522645.png" alt="За клик">
+            </div>
+            <div class="menu-btn" id="shopBtn">
+                <img src="https://cdn-icons-png.flaticon.com/512/709/709790.png" alt="Магазин">
+            </div>
+        </div>
+
+        <div class="drawer-overlay" id="drawerOverlay"></div>
+        <div class="drawer" id="drawer">
+            <div class="drawer-header" id="drawerHeader">
+                <div class="drawer-handle"></div>
+                <h2 id="drawerTitle">Магазин</h2>
+            </div>
+            <div class="drawer-content" id="drawerContent">
+                <div class="items-container" id="itemsContainer"></div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="prestigeModal">
+            <div class="modal-content prestige-modal">
+                <h2>Перерождение</h2>
+                <p>Текущий множитель: <span id="currentMultiplier">1</span>X</p>
+                <p>Следующий множитель: <span id="nextMultiplier">2</span>X</p>
+                <p>Стоимость: <span id="prestigeCost">100,000,000,000</span> голды</p>
+                <p>При перерождении всё сбросится, кроме множителя!</p>
+                <div class="prestige-buttons">
+                    <button class="buy-btn" id="confirmPrestige">Переродиться</button>
+                    <button class="cancel-btn" id="cancelPrestige">Отмена</button>
+                </div>
+            </div>
+        </div>
+
+        <video autoplay muted loop id="backgroundVideo">
+            <source src="killjoy-valorant-cyberpunk-style-wallpaperwaves-com.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
