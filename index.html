@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Тапалка Игра</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://yandex.ru/games/sdk/v2"></script>
+    <meta name="yandex-verification" content="d7d3b2b7a1e5c9f3">
+</head>
+<body>
+    <div class="container">
+
+        <div class="game-background"></div>
+
+        <div class="top-info">
+            <div class="gold-info">
+                <div class="gold-display">
+                    <span id="gold">0</span>
+                    <div class="gold-icon"></div>
+                </div>
+                <div class="per-second-display" id="perSecondDisplay">
+                    +0/сек
+                </div>
+            </div>
+            <div class="multiplier-display" id="multiplier"></div>
+        </div>
+
+        <div class="tap-area">
+            <div class="tap-target" id="tapTarget">
+                <div class="tap-image"></div>
+            </div>
+            <div class="click-effect-container" id="clickEffectContainer"></div>
+        </div>
+
+        <div class="prestige-container">
+            <div class="prestige-btn" id="prestigeBtn">
+            <div class="prestige-icon"></div>
+        </div>
+        <div class="prestige-text">Перерождение</div>
+        </div>
+
+        <div class="sound-container">
+            <div class="sound-btn" id="soundBtn">
+                <div class="sound-icon"></div>
+                <div class="sound-text">Вкл</div>
+            </div>
+        </div>
+
+        <div class="bottom-menu">
+            <div class="menu-btn" id="perSecondBtn">
+                <div class="menu-icon per-second-icon"></div>
+            </div>
+            <div class="menu-btn" id="perClickBtn">
+                <div class="menu-icon per-click-icon"></div>
+            </div>
+            <div class="menu-btn" id="shopBtn">
+                <div class="menu-icon shop-icon"></div>
+            </div>
+        </div>
+
+        <div class="drawer-overlay" id="drawerOverlay"></div>
+        <div class="drawer" id="drawer">
+            <div class="drawer-header" id="drawerHeader">
+                <div class="drawer-handle"></div>
+                <h2 id="drawerTitle">Магазин</h2>
+            </div>
+            <div class="drawer-content" id="drawerContent">
+                <div class="items-container" id="itemsContainer"></div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="prestigeModal">
+            <div class="modal-content prestige-modal">
+                <h2>Перерождение</h2>
+                <p>Текущий множитель: <span id="currentMultiplier">1</span>X</p>
+                <p>Следующий множитель: <span id="nextMultiplier">2</span>X</p>
+                <p>Стоимость: <span id="prestigeCost">100B</span> голды</p>
+                <div class="prestige-buttons">
+                    <button class="buy-btn" id="confirmPrestige">Переродиться</button>
+                    <button class="cancel-btn" id="cancelPrestige">Отмена</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
